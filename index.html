@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GEARCALC-PRO — Involute Spur Gear Contact Ratio</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --card: rgba(255,255,255,0.08);
+      --card2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.68);
+      --line: rgba(255,255,255,0.14);
+      --ok: #38d27d;
+      --warn: #ffcc66;
+      --bad: #ff6b6b;
+      --btn: rgba(255,255,255,0.12);
+      --btn2: rgba(255,255,255,0.18);
+      --shadow: 0 12px 40px rgba(0,0,0,0.35);
+      --radius: 16px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(74,222,128,0.12), transparent 55%),
+                  radial-gradient(1000px 600px at 80% 20%, rgba(59,130,246,0.14), transparent 50%),
+                  radial-gradient(900px 600px at 50% 90%, rgba(236,72,153,0.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .wrap{
+      max-width: 1050px;
+      margin: 28px auto;
+      padding: 0 18px 34px;
+    }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+      font-weight: 750;
+    }
+    .subtitle{
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.35;
+      max-width: 72ch;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 14px;
+    }
+    .card{
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card h2{
+      margin:0;
+      padding: 14px 14px 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.86);
+      border-bottom: 1px solid var(--line);
+      letter-spacing: 0.2px;
+    }
+    .content{
+      padding: 14px;
+    }
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+    .field label{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap: 8px;
+    }
+    .hint{
+      color: rgba(255,255,255,0.55);
+      font-size: 11px;
+    }
+    input, select{
+      width:100%;
+      box-sizing:border-box;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.18);
+      color: var(--text);
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(59,130,246,0.55);
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.14);
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+    .btn{
+      cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--btn);
+      color: var(--text);
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+    .btn:hover{ background: var(--btn2); }
+    .btn.primary{
+      background: rgba(56,210,125,0.14);
+      border-color: rgba(56,210,125,0.30);
+    }
+    .btn.primary:hover{
+      background: rgba(56,210,125,0.20);
+    }
+    .radio{
+      display:flex;
+      gap:10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      align-items:center;
+      justify-content:space-between;
+    }
+    .radio .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .radio small{ color: var(--muted); }
+    .radio .right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .radio label{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.82);
+      cursor:pointer;
+    }
+    .out{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .kpi{
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,0.18);
+    }
+    .kpi .big{
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      margin-top: 4px;
+    }
+    .kpi .cap{
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight: 650;
+      font-size: 12.5px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+    }
+    .badge.ok{ border-color: rgba(56,210,125,0.35); background: rgba(56,210,125,0.12); }
+    .badge.warn{ border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.12); }
+    .badge.bad{ border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.12); }
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+    }
+    .table th, .table td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      font-size: 13px;
+    }
+    .table th{
+      text-align:left;
+      color: rgba(255,255,255,0.80);
+      font-weight: 700;
+      background: rgba(255,255,255,0.04);
+    }
+    .table td{
+      color: rgba(255,255,255,0.88);
+    }
+    .mono{
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .msg{
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,0.18);
+      color: rgba(255,255,255,0.80);
+      font-size: 13px;
+      line-height: 1.35;
+      display:none;
+    }
+    .msg.show{ display:block; }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+      .form{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>GEARCALC-PRO — Contact Ratio (Involute Spur)</h1>
+        <div class="subtitle">
+          Mini demo calculator: δίνεις βασικά γεωμετρικά στοιχεία involute spur gear και παίρνεις τον transverse contact ratio
+          <span class="mono">εα = εα</span> (ε<sub>α</sub>).
+          Περιλαμβάνει profile shift (<span class="mono">x1, x2</span>) και επιλογή center distance (auto/manual).
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- INPUTS -->
+      <section class="card">
+        <h2>Είσοδοι</h2>
+        <div class="content">
+          <div class="form">
+            <div class="field">
+              <label>Module m <span class="hint">(mm)</span></label>
+              <input id="m" type="number" step="0.01" value="2.0" min="0.01" />
+            </div>
+            <div class="field">
+              <label>Pressure angle α <span class="hint">(deg)</span></label>
+              <input id="alpha" type="number" step="0.1" value="20" min="1" max="45" />
+            </div>
+
+            <div class="field">
+              <label>Teeth z₁ <span class="hint">(pinion)</span></label>
+              <input id="z1" type="number" step="1" value="19" min="3" />
+            </div>
+            <div class="field">
+              <label>Teeth z₂ <span class="hint">(gear)</span></label>
+              <input id="z2" type="number" step="1" value="49" min="3" />
+            </div>
+
+            <div class="field">
+              <label>Profile shift x₁ <span class="hint">(-…+)</span></label>
+              <input id="x1" type="number" step="0.01" value="0.00" />
+            </div>
+            <div class="field">
+              <label>Profile shift x₂ <span class="hint">(-…+)</span></label>
+              <input id="x2" type="number" step="0.01" value="0.00" />
+            </div>
+
+            <div class="field">
+              <label>Addendum coeff. hₐ* <span class="hint">(default 1.0)</span></label>
+              <input id="ha" type="number" step="0.01" value="1.00" min="0.2" />
+            </div>
+            <div class="field">
+              <label>Clearance coeff. c* <span class="hint">(info μόνο)</span></label>
+              <input id="c" type="number" step="0.01" value="0.25" min="0.0" />
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div class="radio">
+              <div class="left">
+                <div style="font-weight:700; color: rgba(255,255,255,0.86);">Center distance</div>
+                <small>Auto: a = m(z₁+z₂)/2 + m(x₁+x₂). Manual: δίνεις a.</small>
+              </div>
+              <div class="right">
+                <label><input type="radio" name="aMode" value="auto" checked /> Auto</label>
+                <label><input type="radio" name="aMode" value="manual" /> Manual</label>
+                <div style="min-width:180px;">
+                  <input id="a_manual" type="number" step="0.01" placeholder="a (mm)" disabled />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn primary" id="btnCalc">Υπολογισμός</button>
+            <button class="btn" id="btnCSV" disabled>Export CSV</button>
+            <button class="btn" id="btnReset">Reset</button>
+          </div>
+
+          <div class="msg" id="msg"></div>
+        </div>
+      </section>
+
+      <!-- OUTPUTS -->
+      <section class="card">
+        <h2>Αποτελέσματα</h2>
+        <div class="content out">
+          <div class="kpi">
+            <div class="cap">Transverse contact ratio</div>
+            <div class="big mono" id="eps">—</div>
+            <div style="margin-top:10px;">
+              <span class="badge" id="badge">—</span>
+            </div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr><th>Μέγεθος</th><th class="mono">Τιμή</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Center distance a (mm)</td><td class="mono" id="out_a">—</td></tr>
+              <tr><td>Working pressure angle αw (deg)</td><td class="mono" id="out_aw">—</td></tr>
+              <tr><td>Length of action L (mm)</td><td class="mono" id="out_L">—</td></tr>
+              <tr><td>Base pitch pb (mm)</td><td class="mono" id="out_pb">—</td></tr>
+              <tr><td>rb1, rb2 (mm)</td><td class="mono" id="out_rb">—</td></tr>
+              <tr><td>ra1, ra2 (mm)</td><td class="mono" id="out_ra">—</td></tr>
+            </tbody>
+          </table>
+
+          <div class="subtitle" style="margin-top:10px;">
+            Σημείωση: Για spur gears αυτό είναι μόνο το ε<sub>α</sub>. Για helical αργότερα προσθέτεις και overlap ratio ε<sub>β</sub> ώστε
+            ε = ε<sub>α</sub> + ε<sub>β</sub>.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      last: null
+    };
+
+    function deg2rad(d){ return d * Math.PI / 180; }
+    function rad2deg(r){ return r * 180 / Math.PI; }
+    function fmt(x, n=6){
+      if (!isFinite(x)) return "—";
+      const s = Number(x).toFixed(n);
+      // trim trailing zeros (nice UI)
+      return s.replace(/(\.\d*?[1-9])0+$/,"$1").replace(/\.0$/,"");
+    }
+
+    function setMsg(text, type="warn"){
+      const el = $("msg");
+      if (!text){
+        el.classList.remove("show");
+        el.textContent = "";
+        return;
+      }
+      el.classList.add("show");
+      el.style.borderColor =
+        type==="bad" ? "rgba(255,107,107,0.35)" :
+        type==="ok"  ? "rgba(56,210,125,0.35)" :
+                      "rgba(255,204,102,0.35)";
+      el.style.background =
+        type==="bad" ? "rgba(255,107,107,0.10)" :
+        type==="ok"  ? "rgba(56,210,125,0.10)" :
+                      "rgba(255,204,102,0.10)";
+      el.textContent = text;
+    }
+
+    function qualityBadge(eps){
+      const b = $("badge");
+      b.className = "badge";
+      if (!isFinite(eps)){
+        b.textContent = "—";
+        return;
+      }
+      // πολύ απλό heuristic για demo
+      if (eps >= 1.2){
+        b.classList.add("ok");
+        b.textContent = "OK: καλή επικάλυψη (>= 1.2)";
+      } else if (eps >= 1.0){
+        b.classList.add("warn");
+        b.textContent = "ΟΚ οριακά (1.0 – 1.2)";
+      } else {
+        b.classList.add("bad");
+        b.textContent = "Χαμηλή επικάλυψη (< 1.0)";
+      }
+    }
+
+    function readInputs(){
+      const m = Number($("m").value);
+      const alpha_deg = Number($("alpha").value);
+      const z1 = Number($("z1").value);
+      const z2 = Number($("z2").value);
+      const x1 = Number($("x1").value);
+      const x2 = Number($("x2").value);
+      const ha = Number($("ha").value);
+      const c = Number($("c").value); // info only for now
+
+      const mode = document.querySelector('input[name="aMode"]:checked')?.value ?? "auto";
+      const a_manual = Number($("a_manual").value);
+
+      return { m, alpha_deg, z1, z2, x1, x2, ha, c, mode, a_manual };
+    }
+
+    function validate(inp){
+      const errs = [];
+      if (!(inp.m > 0)) errs.push("Το module m πρέπει να είναι > 0.");
+      if (!(inp.z1 >= 3 && Number.isFinite(inp.z1))) errs.push("Το z1 πρέπει να είναι ακέραιο >= 3.");
+      if (!(inp.z2 >= 3 && Number.isFinite(inp.z2))) errs.push("Το z2 πρέπει να είναι ακέραιο >= 3.");
+      if (!(inp.alpha_deg > 0 && inp.alpha_deg < 60)) errs.push("Η α πρέπει να είναι σε λογικά όρια (0–60 deg).");
+      if (!(inp.ha > 0)) errs.push("Το hₐ* πρέπει να είναι > 0.");
+      if (inp.mode === "manual" && !(inp.a_manual > 0)) errs.push("Δώσε manual center distance a > 0.");
+      return errs;
+    }
+
+    function computeContactRatio(inp){
+      const alpha = deg2rad(inp.alpha_deg);
+
+      const r1 = inp.m * inp.z1 / 2;
+      const r2 = inp.m * inp.z2 / 2;
+
+      const rb1 = r1 * Math.cos(alpha);
+      const rb2 = r2 * Math.cos(alpha);
+
+      const a_auto = inp.m * (inp.z1 + inp.z2)/2 + inp.m * (inp.x1 + inp.x2);
+      const a = (inp.mode === "manual") ? inp.a_manual : a_auto;
+
+      const cos_aw = (rb1 + rb2) / a;
+      if (!(cos_aw > 0 && cos_aw <= 1.0)){
+        throw new Error("Αδύνατο geometry: (rb1+rb2)/a πρέπει να είναι στο (0, 1]. Έλεγξε center distance / shifts.");
+      }
+      const alpha_w = Math.acos(cos_aw);
+
+      const ra1 = r1 + inp.m * (inp.ha + inp.x1);
+      const ra2 = r2 + inp.m * (inp.ha + inp.x2);
+
+      const s1 = ra1*ra1 - rb1*rb1;
+      const s2 = ra2*ra2 - rb2*rb2;
+      if (s1 <= 0 || s2 <= 0){
+        throw new Error("Αδύνατο geometry: ra^2 - rb^2 <= 0. (ra πρέπει να είναι > rb). Έλεγξε hₐ* και x.");
+      }
+
+      const L = Math.sqrt(s1) + Math.sqrt(s2) - a * Math.sin(alpha_w);
+
+      const pb = Math.PI * inp.m * Math.cos(alpha); // base pitch (reference system)
+      if (pb <= 0) throw new Error("Base pitch pb <= 0 (έλεγξε α, m).");
+
+      const eps = L / pb;
+
+      return {
+        inputs: inp,
+        r1, r2, rb1, rb2, ra1, ra2,
+        a, a_auto,
+        alpha, alpha_w,
+        L, pb, eps
+      };
+    }
+
+    function render(res){
+      $("eps").textContent = fmt(res.eps, 4);
+      qualityBadge(res.eps);
+
+      $("out_a").textContent  = fmt(res.a, 4) + (res.inputs.mode==="auto" ? " (auto)" : " (manual)");
+      $("out_aw").textContent = fmt(rad2deg(res.alpha_w), 4);
+      $("out_L").textContent  = fmt(res.L, 4);
+      $("out_pb").textContent = fmt(res.pb, 4);
+
+      $("out_rb").textContent = fmt(res.rb1, 4) + ", " + fmt(res.rb2, 4);
+      $("out_ra").textContent = fmt(res.ra1, 4) + ", " + fmt(res.ra2, 4);
+
+      $("btnCSV").disabled = false;
+    }
+
+    function toCSV(res){
+      const rows = [
+        ["name","value","unit"],
+        ["m", res.inputs.m, "mm"],
+        ["alpha", res.inputs.alpha_deg, "deg"],
+        ["z1", res.inputs.z1, "-"],
+        ["z2", res.inputs.z2, "-"],
+        ["x1", res.inputs.x1, "-"],
+        ["x2", res.inputs.x2, "-"],
+        ["ha*", res.inputs.ha, "-"],
+        ["a", res.a, "mm"],
+        ["alpha_w", rad2deg(res.alpha_w), "deg"],
+        ["rb1", res.rb1, "mm"],
+        ["rb2", res.rb2, "mm"],
+        ["ra1", res.ra1, "mm"],
+        ["ra2", res.ra2, "mm"],
+        ["L", res.L, "mm"],
+        ["pb", res.pb, "mm"],
+        ["eps_alpha", res.eps, "-"],
+      ];
+      return rows.map(r => r.map(x => `"${String(x).replaceAll('"','""')}"`).join(",")).join("\n");
+    }
+
+    function download(filename, text){
+      const blob = new Blob([text], {type: "text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetUI(){
+      $("eps").textContent = "—";
+      $("badge").className = "badge";
+      $("badge").textContent = "—";
+      $("out_a").textContent = "—";
+      $("out_aw").textContent = "—";
+      $("out_L").textContent = "—";
+      $("out_pb").textContent = "—";
+      $("out_rb").textContent = "—";
+      $("out_ra").textContent = "—";
+      $("btnCSV").disabled = true;
+      state.last = null;
+      setMsg("");
+    }
+
+    // Events
+    document.querySelectorAll('input[name="aMode"]').forEach(r => {
+      r.addEventListener("change", () => {
+        const mode = document.querySelector('input[name="aMode"]:checked')?.value ?? "auto";
+        $("a_manual").disabled = (mode !== "manual");
+        if (mode !== "manual") $("a_manual").value = "";
+      });
+    });
+
+    $("btnCalc").addEventListener("click", () => {
+      resetUI();
+      const inp = readInputs();
+      const errs = validate(inp);
+      if (errs.length){
+        setMsg(errs.join(" "), "bad");
+        return;
+      }
+      try{
+        const res = computeContactRatio(inp);
+        if (!isFinite(res.eps)){
+          setMsg("Ο υπολογισμός έδωσε μη-πεπερασμένο αποτέλεσμα. Έλεγξε inputs.", "bad");
+          return;
+        }
+        // basic sanity
+        if (res.L <= 0){
+          setMsg("Προσοχή: Το L (length of action) βγήκε <= 0. Αυτό συνήθως σημαίνει μη-εφικτή επαφή για τα δεδομένα.", "warn");
+        } else {
+          setMsg("", "ok");
+        }
+        render(res);
+        state.last = res;
+      } catch(e){
+        setMsg(e.message || String(e), "bad");
+      }
+    });
+
+    $("btnCSV").addEventListener("click", () => {
+      if (!state.last) return;
+      const csv = toCSV(state.last);
+      download("GEARCALC_PRO_contact_ratio.csv", csv);
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      // reset to defaults (keep as is, just clear outputs)
+      resetUI();
+    });
+
+    // initial
+    resetUI();
+  </script>
+</body>
+</html>
