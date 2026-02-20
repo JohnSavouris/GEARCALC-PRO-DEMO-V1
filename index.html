@@ -374,7 +374,11 @@
    GEARCALC-PRO DEMO V1 (Single-file)
    - Involute rack generation -> LOA extraction -> profile
    - rack_fillet_v2 (ported) -> root completion
-   - gear_generator (ported) -> tooth + full gear + FEA segments
+   - gear_generator (ported) -> full gear + FEA segments
+   CHANGE REQUEST APPLIED:
+   - The "tooth preview / tooth CSV" is now the SECTOR boundary whose
+     root-circle parts are CUT at θ = ±π/Z (root circle trimmed at -π/Z and +π/Z).
+     Full gear outline remains unchanged.
    ============================================================ */
 
 (function(){
@@ -403,31 +407,26 @@
 
   // ---------- App state ----------
   const state = {
-    last: null,              // last computed geometry bundle
+    last: null,              // last computed base bundle
     lastProfilePP: null,     // {x_pp,y_pp} pitch-point frame profile
-    lastTooth: null,         // {x_tooth,y_tooth}
-    lastGear: null,          // {x_tot,y_tot}
+    lastTooth: null,         // {x_tooth,y_tooth}  (NOW: sector boundary cut at ±π/Z)
+    lastGear: null,          // {x_tot,y_tot}      (legacy full gear)
     lastSeg: null,           // seg struct
     lastLOA: null            // {x_LOA,y_LOA}
   };
 
   // ---------- Helpers ----------
   function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
-  function hypot(x,y){ return Math.hypot(x,y); }
   function deg2rad(d){ return d*Math.PI/180; }
-
   function fmt(v, nd=6){
     if (!isFinite(v)) return "—";
     const s = v.toFixed(nd);
-    // trim trailing zeros for nicer look
     return s.replace(/(\.\d*?[1-9])0+$/,'$1').replace(/\.0+$/,'');
   }
-
   function setStatus(kind, msg){
     ui.status.className = "status " + (kind || "");
     ui.status.innerHTML = msg;
   }
-
   function downloadCSV(filename, rows){
     const csv = rows.map(r => r.join(",")).join("\n");
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
@@ -440,24 +439,6 @@
     a.remove();
     URL.revokeObjectURL(url);
   }
-
-  function arcXY(r, th1, th2, N, includeEnds){
-    const pts = [];
-    if (N < 2) N = 2;
-    let th;
-    if (includeEnds){
-      th = linspace(th1, th2, N);
-    } else {
-      th = linspace(th1, th2, N+2).slice(1,-1);
-    }
-    for (let i=0;i<th.length;i++){
-      const t = th[i];
-      // legacy convention: x = r*sin(theta), y = r*cos(theta)
-      pts.push([ r*Math.sin(t), r*Math.cos(t) ]);
-    }
-    return pts;
-  }
-
   function linspace(a,b,n){
     if (n<=1) return [a];
     const arr = new Array(n);
@@ -465,14 +446,12 @@
     for (let i=0;i<n;i++) arr[i] = a + step*i;
     return arr;
   }
-
   function rotateXY(x, y, ang){
     const c = Math.cos(ang), s = Math.sin(ang);
     return [ x*c - y*s, x*s + y*c ];
   }
 
-  // Five-point non-uniform derivative (ported from your MATLAB stencil)
-  // Returns df/dx for f(x) with 5-point local Lagrange weights.
+  // Five-point non-uniform derivative (ported from MATLAB)
   function fivePointNonUniformDerivative(x, f){
     const n = x.length;
     if (n < 5) throw new Error("At least 5 points are required for 5-point derivative.");
@@ -511,10 +490,25 @@
     return dfdx;
   }
 
+  // ---------- Arc helper (legacy convention: x=r sinθ, y=r cosθ) ----------
+  function arcXY(r, th1, th2, N, includeEnds){
+    const pts = [];
+    if (N < 2) N = 2;
+    let th;
+    if (includeEnds){
+      th = linspace(th1, th2, N);
+    } else {
+      th = linspace(th1, th2, N+2).slice(1,-1);
+    }
+    for (let i=0;i<th.length;i++){
+      const t = th[i];
+      pts.push([ r*Math.sin(t), r*Math.cos(t) ]);
+    }
+    return pts;
+  }
+
   // ---------- Core: LOA extraction + profile generation ----------
-  function computeInvoluteLOAandProfile({
-    m, z1, z2, alphaRad, Ck, Cf, N
-  }){
+  function computeInvoluteLOAandProfile({ m, z1, z2, alphaRad, Ck, Cf, N }){
     if (!(m>0)) throw new Error("Module m must be > 0.");
     if (!(z1>=3 && Number.isInteger(z1))) throw new Error("z1 must be an integer ≥ 3.");
     if (!(z2>=3 && Number.isInteger(z2))) throw new Error("z2 must be an integer ≥ 3.");
@@ -532,26 +526,23 @@
     const ra1 = ro1 + hk;
     const ra2 = ro2 + hk;
 
-    // Rack line (ideal involute generating rack flank)
+    // Rack line
     const yr = linspace(-Cf*m, Ck*m, N);
     const xr = yr.map(v => -Math.tan(alphaRad)*v);
 
-    // dy/dx of rack (line) is constant: dy/dx = -1/tan(alpha)
-    // Still keep derivative pipeline-compatible:
+    // Keep pipeline-compatible derivative form
     // const dydx = fivePointNonUniformDerivative(xr, yr);
-    const dydx = yr.map(() => -1/Math.tan(alphaRad));
+    const dydx = yr.map(() => -1/Math.tan(alphaRad)); // exact for the line
 
     // Rack translation K and corresponding pinion rotation
     const K = yr.map((y,i) => -(y*dydx[i] + xr[i]));
     const theta = K.map(k => k / ro1);
 
-    // Contact path points (pitch-point frame)
+    // Contact path (pitch-point frame)
     const xcp = xr.map((x,i) => x + K[i]);
     const ycp = yr.slice();
 
-    // LOA region is where points are inside both addendum circles
-    // Pitch-point frame centers:
-    // O1 = [0, -ro1], O2 = [0, +ro2]
+    // LOA region: inside both addendum circles
     const mask = xcp.map((x,i) => {
       const y = ycp[i];
       const rA1 = Math.hypot(x, y + ro1);
@@ -559,7 +550,7 @@
       return (rA1 <= ra1) && (rA2 <= ra2);
     });
 
-    // Find longest contiguous true-run (same logic as your MATLAB)
+    // Longest contiguous true-run
     let runs = [];
     let inRun = false;
     let s = 0;
@@ -590,7 +581,7 @@
     const thLOA = theta.slice(i0, i1+1);
     const KLOA = K.slice(i0, i1+1);
 
-    // Pinion profile (pitch-point frame), from LOA kinematics
+    // Pinion profile in pitch-point frame
     const xPP = new Array(xLOA.length);
     const yPP = new Array(xLOA.length);
     for (let i=0;i<xLOA.length;i++){
@@ -599,8 +590,7 @@
       yPP[i] =  x*Math.sin(th) + (y + ro1)*Math.cos(th) - ro1;
     }
 
-    // LOA length and base pitch
-    const loaLen = bestLen; // computed along that run
+    const loaLen = bestLen;
     const pb = Math.PI*m*Math.cos(alphaRad);
     const eps = loaLen / pb;
 
@@ -616,7 +606,7 @@
     };
   }
 
-  // ---------- rack_fillet_v2 (ported, compute-only) ----------
+  // ---------- rack_fillet_v2 (compute-only port) ----------
   function eval_rc_from_dy(dy_try, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy){
     const yrl = y_end0 - dy_try;
     const xrl = x_end0 + slope_dxdy*(yrl - y_end0);
@@ -651,7 +641,7 @@
 
     if (xr.length !== yr.length || xr.length < 2) throw new Error("rack_fillet: xr/yr must have same length and at least 2 points.");
 
-    // Ensure lower end at END (yr decreases toward end)
+    // Ensure lower end at END
     if (yr[yr.length-1] > yr[0]){
       xr.reverse(); yr.reverse();
     }
@@ -705,7 +695,7 @@
             dy_ext = dy_mid; break;
           }
           if (f_lo*f_mid <= 0){
-            dy_hi = dy_mid; f_hi = f_mid;
+            dy_hi = dy_mid;
           } else {
             dy_lo = dy_mid; f_lo = f_mid;
           }
@@ -737,18 +727,17 @@
       }
     }
 
-    // Extend rack downward by dy_ext along last segment
+    // Extend rack downward
     if (dy_ext > 1e-12){
       const y_end1 = y_end0 - dy_ext;
       const stepext = 1.5e-3;
       const Next = Math.max(5, Math.ceil(Math.abs(y_end1 - y_end0)/stepext));
-      const y_ext = linspace(y_end0, y_end1, Next+1).slice(1); // avoid duplicating endpoint
+      const y_ext = linspace(y_end0, y_end1, Next+1).slice(1);
       const x_ext = y_ext.map(yv => xr[xr.length-1] + slope_dxdy*(yv - y_end0));
       xr = xr.concat(x_ext);
       yr = yr.concat(y_ext);
     }
 
-    // Recompute endpoint slope
     const arack_end = (yr[yr.length-2] - yr[yr.length-1]) / (xr[xr.length-2] - xr[xr.length-1]);
     let phir = Math.atan(-arack_end);
 
@@ -757,7 +746,6 @@
 
     let delta = cdel*m;
 
-    // Fillet circle radius
     let rc = (yrlptc + Math.tan(phir)*xrlptc + Cf*m - Math.tan(phir)*(K0 - delta/2)) /
              (1 - Math.cos(phir) - Math.tan(phir)*Math.sin(phir));
 
@@ -767,7 +755,6 @@
     let xrend = -rc*Math.sin(phir) + xrc0;
     let yrend =  rc*(1 - Math.cos(phir)) - Cf*m;
 
-    // Clamp
     if (yrend > yrlptc){
       yrend = yrlptc;
       xrend = xrlptc;
@@ -777,7 +764,6 @@
       xrc0 = K0 - delta/2;
     }
 
-    // Two-line branch decision
     const xtest = (-Cf*m - yrlptc - Math.tan(phir)*xrlptc) / (-Math.tan(phir));
     const useLowerLine = (xtest > K0);
 
@@ -800,7 +786,7 @@
       phiArc = phir_new;
     }
 
-    // Straight segment(s) down to arc start
+    // Straight segment(s)
     let xr_lin = [], yr_lin = [], dydx_lin = [];
     let steplin = 1.5e-3;
     if (Math.abs(yrlptc - yrend) < steplin){
@@ -817,7 +803,6 @@
       yr_lin = ylin;
       dydx_lin = ylin.map(() => -Math.tan(phir));
     } else {
-      // line 1: endpoint to (xrpr,yrpr)
       let ylin1 = [];
       for (let yv=yrlptc; yv>=yrpr; yv-=steplin) ylin1.push(yv);
       if (ylin1.length===0 || ylin1[ylin1.length-1] !== yrpr) ylin1.push(yrpr);
@@ -839,7 +824,7 @@
       dydx_lin = ylin1.map(() => -Math.tan(phir)).concat(ylin2.slice(1).map(() => -Math.tan(phir_new)));
     }
 
-    // Arc from phiArc down to 0
+    // Arc phiArc -> 0
     const dphi = deg2rad(0.5);
     let thrc = [];
     for (let t=phiArc; t>=0; t-=dphi) thrc.push(t);
@@ -853,7 +838,7 @@
     const yr_tr = yr_lin.concat(yr_rc);
     const dydx_tr = dydx_lin.concat(dydx_rc);
 
-    // Map rack trace to pinion-centered frame
+    // Map to pinion-centered frame
     const x_pin_tr = new Array(xr_tr.length);
     const y_pin_tr = new Array(xr_tr.length);
 
@@ -867,7 +852,7 @@
     return { x_pin_tr, y_pin_tr };
   }
 
-  // ---------- gear_generator (ported, FEA-ready, gap-safe) ----------
+  // ---------- gear_generator (FEA-ready) ----------
   function snapEndToStart(A, B, tol){
     if (!A || !B || A.length===0 || B.length===0) return [A,B];
     const pA = A[A.length-1];
@@ -880,7 +865,6 @@
     }
     return [A,B];
   }
-
   function dedupeConsecutive(P){
     if (!P || P.length<2) return P;
     const out = [P[0]];
@@ -891,14 +875,12 @@
     return out;
   }
 
-  function gear_generator(x, y, x_tr, y_tr, Z, writeFlag){
-    // x,y: right flank (gear-centered), expected tip->down
-    // x_tr,y_tr: right completion (join->root)
+  function gear_generator(x, y, x_tr, y_tr, Z){
     if (x.length < 2 || y.length < 2 || x.length !== y.length) throw new Error("gear_generator: invalid x,y.");
     if (x_tr.length < 2 || y_tr.length < 2 || x_tr.length !== y_tr.length) throw new Error("gear_generator: invalid x_tr,y_tr.");
     if (!(Z>=3 && Number.isInteger(Z))) throw new Error("gear_generator: Z must be integer >=3.");
 
-    // Ensure ordering
+    // Enforce ordering
     const r_in = x.map((vx,i)=> Math.hypot(vx,y[i]));
     if (r_in[0] < r_in[r_in.length-1]){
       x = x.slice().reverse(); y = y.slice().reverse();
@@ -908,7 +890,7 @@
       x_tr = x_tr.slice().reverse(); y_tr = y_tr.slice().reverse();
     }
 
-    // Addendum arc (legacy convention)
+    // Legacy addendum arc
     const th_pin_div_k = 40;
     const rA = Math.hypot(x[0], y[0]);
     const th_tip_R = Math.atan2(x[0], y[0]);
@@ -918,7 +900,7 @@
     const xk = th_k.slice(1,-1).map(t => rA*Math.sin(t));
     const yk = th_k.slice(1,-1).map(t => rA*Math.cos(t));
 
-    // Root arc to next pitch (legacy)
+    // Legacy tooth outline (for full-gear outline)
     const th_div_f = 20;
     const rF = Math.hypot(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
     const th_root_R = Math.atan2(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
@@ -929,38 +911,36 @@
     const xf = th_f.slice(1,-1).map(t => rF*Math.sin(t));
     const yf = th_f.slice(1,-1).map(t => rF*Math.cos(t));
 
-    // Single tooth outline (legacy)
-    const flankstep = 1;
-    const x_tooth = [];
-    const y_tooth = [];
+    const x_tooth_legacy = [];
+    const y_tooth_legacy = [];
 
-    // LEFT trochoid: root -> join (mirror of right trochoid reversed)
-    for (let i=x_tr.length-1;i>=0;i-=flankstep){
-      x_tooth.push(-x_tr[i]); y_tooth.push(y_tr[i]);
+    // left trochoid
+    for (let i=x_tr.length-1;i>=0;i--){
+      x_tooth_legacy.push(-x_tr[i]); y_tooth_legacy.push(y_tr[i]);
     }
-    // LEFT involute: join -> tip (mirror of right involute reversed)
-    for (let i=x.length-1;i>=0;i-=flankstep){
-      x_tooth.push(-x[i]); y_tooth.push(y[i]);
+    // left involute
+    for (let i=x.length-1;i>=0;i--){
+      x_tooth_legacy.push(-x[i]); y_tooth_legacy.push(y[i]);
     }
-    // addendum arc
+    // addendum
     for (let i=0;i<xk.length;i++){
-      x_tooth.push(xk[i]); y_tooth.push(yk[i]);
+      x_tooth_legacy.push(xk[i]); y_tooth_legacy.push(yk[i]);
     }
-    // RIGHT involute: tip -> join
-    for (let i=0;i<x.length;i+=flankstep){
-      x_tooth.push(x[i]); y_tooth.push(y[i]);
+    // right involute
+    for (let i=0;i<x.length;i++){
+      x_tooth_legacy.push(x[i]); y_tooth_legacy.push(y[i]);
     }
-    // RIGHT trochoid: join -> root
-    for (let i=0;i<x_tr.length;i+=flankstep){
-      x_tooth.push(x_tr[i]); y_tooth.push(y_tr[i]);
+    // right trochoid
+    for (let i=0;i<x_tr.length;i++){
+      x_tooth_legacy.push(x_tr[i]); y_tooth_legacy.push(y_tr[i]);
     }
     // root arc to next pitch
     for (let i=0;i<xf.length;i++){
-      x_tooth.push(xf[i]); y_tooth.push(yf[i]);
+      x_tooth_legacy.push(xf[i]); y_tooth_legacy.push(yf[i]);
     }
 
-    // Full gear by rotation
-    const Ntooth = x_tooth.length;
+    // Full gear by rotation (legacy outline)
+    const Ntooth = x_tooth_legacy.length;
     const x_tot = new Array(Z*Ntooth + 1);
     const y_tot = new Array(Z*Ntooth + 1);
 
@@ -969,7 +949,7 @@
       const c = Math.cos(rot), s = Math.sin(rot);
       const istart = (k-1)*Ntooth;
       for (let i=0;i<Ntooth;i++){
-        const xx = x_tooth[i], yy = y_tooth[i];
+        const xx = x_tooth_legacy[i], yy = y_tooth_legacy[i];
         x_tot[istart+i] = xx*c - yy*s;
         y_tot[istart+i] = xx*s + yy*c;
       }
@@ -977,7 +957,7 @@
     x_tot[x_tot.length-1] = x_tot[0];
     y_tot[y_tot.length-1] = y_tot[0];
 
-    // FEA sector segments (θ ∈ [-pi/Z, +pi/Z])
+    // ---------- FEA sector segments (root circle trimmed at ±π/Z) ----------
     const thetaB_L = -Math.PI/Z;
     const thetaB_R =  Math.PI/Z;
 
@@ -991,7 +971,6 @@
     const NaddSeg  = 80;
 
     let seg = {};
-
     seg.rootL = (th_root_L2 > thetaB_L) ? arcXY(rF, thetaB_L, th_root_L2, NrootSeg, true) : [];
     seg.troL  = x_tr.slice().reverse().map((vx,i)=> [-vx, y_tr[y_tr.length-1-i]]);
     seg.invL  = x.slice().reverse().map((vx,i)=> [-vx, y[y.length-1-i]]);
@@ -1000,7 +979,7 @@
     seg.troR  = x_tr.map((vx,i)=> [vx, y_tr[i]]);
     seg.rootR = (thetaB_R > th_root_R2) ? arcXY(rF, th_root_R2, thetaB_R, NrootSeg, true) : [];
 
-    // Snap junctions (gap-safe)
+    // Snap junctions
     const tolSnap = Math.max(1e-6, 1e-3*Math.max(1, rA));
     [seg.rootL, seg.troL] = snapEndToStart(seg.rootL, seg.troL, tolSnap);
     [seg.troL,  seg.invL] = snapEndToStart(seg.troL,  seg.invL,  tolSnap);
@@ -1009,19 +988,14 @@
     [seg.invR,  seg.troR] = snapEndToStart(seg.invR,  seg.troR,  tolSnap);
     [seg.troR,  seg.rootR]= snapEndToStart(seg.troR,  seg.rootR, tolSnap);
 
-    // Dedupe exact duplicates
     for (const k of ["rootL","troL","invL","add","invR","troR","rootR"]){
       seg[k] = dedupeConsecutive(seg[k]);
     }
 
-    return {
-      x_tot, y_tot,
-      x_tooth, y_tooth,
-      seg
-    };
+    return { x_tot, y_tot, seg };
   }
 
-  // ---------- Prepend connector if needed (to ensure continuity flank->trochoid) ----------
+  // ---------- Connector guard (flank end -> trochoid start) ----------
   function prepend_connector_if_needed(x_in, y_in, xtr_in, ytr_in, Nbridge=25){
     if (!x_in.length || !xtr_in.length) return {xtr:xtr_in, ytr:ytr_in};
     const p_end = [x_in[x_in.length-1], y_in[y_in.length-1]];
@@ -1044,14 +1018,12 @@
     const ctx = cv.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
 
-    // Resize to CSS size
     const cssW = cv.clientWidth;
     const cssH = cv.clientHeight;
     cv.width = Math.round(cssW * dpr);
     cv.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
 
-    // Background
     ctx.clearRect(0,0,cssW,cssH);
 
     const showGear = ui.showGear.checked;
@@ -1076,7 +1048,6 @@
       ymin = Math.min(ymin,y); ymax = Math.max(ymax,y);
     }
 
-    // Add circles extents if enabled (better framing)
     const rMax = bundle ? bundle.ra1 : 1;
     if (showCircles){
       xmin = Math.min(xmin, -rMax); xmax = Math.max(xmax, rMax);
@@ -1104,10 +1075,10 @@
       ctx.setLineDash([6,6]);
       ctx.strokeStyle = "rgba(255,255,255,0.20)";
 
-      drawCircle(ctx, X(0), Y(0), bundle.rf1*s); // root
-      drawCircle(ctx, X(0), Y(0), bundle.ro1*s); // pitch
-      drawCircle(ctx, X(0), Y(0), bundle.rb1*s); // base
-      drawCircle(ctx, X(0), Y(0), bundle.ra1*s); // addendum
+      drawCircle(ctx, X(0), Y(0), bundle.rf1*s);
+      drawCircle(ctx, X(0), Y(0), bundle.ro1*s);
+      drawCircle(ctx, X(0), Y(0), bundle.rb1*s);
+      drawCircle(ctx, X(0), Y(0), bundle.ra1*s);
 
       ctx.restore();
 
@@ -1135,7 +1106,7 @@
     ctx.stroke();
     ctx.restore();
 
-    // Draw LOA (small)
+    // Draw LOA
     if (state.lastLOA){
       const {x_LOA, y_LOA} = state.lastLOA;
       ctx.save();
@@ -1182,7 +1153,7 @@
       ui.ra1.textContent = fmt(base.ra1, 6);
       ui.rf1.textContent = fmt(base.rf1, 6);
 
-      // Build rack inputs for rack_fillet (ensure ordering y decreases towards end)
+      // Rack inputs for rack_fillet (ensure yr decreases to end)
       let xrRack = base.xrLOA.slice();
       let yrRack = base.yrLOA.slice();
       if (yrRack[yrRack.length-1] > yrRack[0]){
@@ -1197,11 +1168,11 @@
 
       const fil = rack_fillet_v2(m, z1, xrRack, yrRack, Cf, cdel, rc_target, phir_new, offset);
 
-      // Working flank in pinion-centered frame (from pitch-point frame)
-      const x_pin = base.xPP.slice();                       // x_pp
-      const y_pin = base.yPP.map(v => v + base.ro1);        // y_pp + ro1
+      // Working flank in pinion-centered frame
+      const x_pin = base.xPP.slice();
+      const y_pin = base.yPP.map(v => v + base.ro1);
 
-      // Phase convention (match your MATLAB)
+      // Phase convention
       const to = m*Math.PI;
       const So = to*0.495;
       const rot = -0.5*So/base.ro1;
@@ -1219,52 +1190,49 @@
         xTr.push(xx); yTr.push(yy);
       }
 
-      // Enforce ordering (same intent as your MATLAB master)
-      // - working flank: tip (larger r) -> root (smaller r)
+      // Enforce ordering
       const r_in = xR.map((vx,i)=> Math.hypot(vx,yR[i]));
       let x_in = xR.slice(), y_in = yR.slice();
       if (r_in[0] < r_in[r_in.length-1]){
         x_in.reverse(); y_in.reverse();
       }
 
-      // - trochoid/completion: join (larger r) -> root (smaller r)
       const r_tr = xTr.map((vx,i)=> Math.hypot(vx,yTr[i]));
       let xtr_in = xTr.slice(), ytr_in = yTr.slice();
       if (r_tr[r_tr.length-1] > r_tr[0]){
         xtr_in.reverse(); ytr_in.reverse();
       }
 
-      // Connector guard (prevents visual/CSV gap)
+      // Connector guard
       const bridged = prepend_connector_if_needed(x_in, y_in, xtr_in, ytr_in, 25);
       xtr_in = bridged.xtr; ytr_in = bridged.ytr;
 
-      // gear_generator
-      const gg = gear_generator(x_in, y_in, xtr_in, ytr_in, z1, 0);
+      // Build full gear + FEA segments
+      const gg = gear_generator(x_in, y_in, xtr_in, ytr_in, z1);
 
-      // Store state for drawing + exports
+      // ---------------------------
+      // CHANGE: Tooth preview/CSV is sector boundary built from FEA segments:
+      // rootL → troL → invL → add → invR → troR → rootR
+      // This trims the root circle exactly at θ = -π/Z and +π/Z.
+      // ---------------------------
+      const order = ["rootL","troL","invL","add","invR","troR","rootR"];
+      const x_tooth_sector = [];
+      const y_tooth_sector = [];
+      for (const k of order){
+        const P = gg.seg[k] || [];
+        for (const p of P){
+          x_tooth_sector.push(p[0]);
+          y_tooth_sector.push(p[1]);
+        }
+      }
+
+      // Store state
       state.last = base;
-
-      state.lastProfilePP = {
-        x_pp: base.xPP.slice(),
-        y_pp: base.yPP.slice()
-      };
-
-      state.lastTooth = {
-        x_tooth: gg.x_tooth,
-        y_tooth: gg.y_tooth
-      };
-
-      state.lastGear = {
-        x_tot: gg.x_tot,
-        y_tot: gg.y_tot
-      };
-
-      state.lastSeg = gg.seg;
-
-      state.lastLOA = {
-        x_LOA: base.xLOA.slice(),
-        y_LOA: base.yLOA.slice()
-      };
+      state.lastProfilePP = { x_pp: base.xPP.slice(), y_pp: base.yPP.slice() };
+      state.lastTooth = { x_tooth: x_tooth_sector, y_tooth: y_tooth_sector };
+      state.lastGear  = { x_tot: gg.x_tot, y_tot: gg.y_tot };
+      state.lastSeg   = gg.seg;
+      state.lastLOA   = { x_LOA: base.xLOA.slice(), y_LOA: base.yLOA.slice() };
 
       setStatus("ok",
         `Computed successfully. ε<sub>α</sub> = <span class="mono">${fmt(base.eps,5)}</span> · ` +
