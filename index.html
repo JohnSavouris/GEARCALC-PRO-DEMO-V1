@@ -1,616 +1,1394 @@
 <!doctype html>
-<html lang="el">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GEARCALC-PRO — Involute Spur Gear Contact Ratio</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GEARCALC-PRO — Involute Spur Gear (Contact Ratio + Tooth Preview)</title>
   <style>
     :root{
-      --bg: #0b1020;
-      --card: rgba(255,255,255,0.08);
-      --card2: rgba(255,255,255,0.06);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.68);
-      --line: rgba(255,255,255,0.14);
-      --ok: #38d27d;
-      --warn: #ffcc66;
-      --bad: #ff6b6b;
-      --btn: rgba(255,255,255,0.12);
-      --btn2: rgba(255,255,255,0.18);
-      --shadow: 0 12px 40px rgba(0,0,0,0.35);
-      --radius: 16px;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --bg:#0b1220;
+      --card:#0f1b33;
+      --card2:#0c1730;
+      --text:#e8eefc;
+      --muted:#aeb8d6;
+      --line:rgba(255,255,255,.10);
+      --accent:#7aa2ff;
+      --accent2:#3ddc97;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --good:#52ffa8;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --r: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
+    *{box-sizing:border-box}
     body{
       margin:0;
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(74,222,128,0.12), transparent 55%),
-                  radial-gradient(1000px 600px at 80% 20%, rgba(59,130,246,0.14), transparent 50%),
-                  radial-gradient(900px 600px at 50% 90%, rgba(236,72,153,0.10), transparent 55%),
-                  var(--bg);
-      color: var(--text);
-    }
-    .wrap{
-      max-width: 1050px;
-      margin: 28px auto;
-      padding: 0 18px 34px;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 900px at 20% -10%, rgba(122,162,255,.22), transparent 60%),
+        radial-gradient(900px 700px at 90% 0%, rgba(61,220,151,.12), transparent 55%),
+        linear-gradient(180deg, #070c16, var(--bg) 45%, #070c16);
+      min-height:100vh;
     }
     header{
+      padding:28px 18px 18px;
+      max-width:1200px;
+      margin:0 auto;
       display:flex;
-      align-items:flex-end;
+      align-items:flex-start;
       justify-content:space-between;
-      gap: 16px;
-      margin-bottom: 16px;
+      gap:18px;
     }
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    .brand{
+      display:flex; flex-direction:column; gap:6px;
     }
-    h1{
-      margin:0;
-      font-size: 22px;
-      letter-spacing: 0.2px;
-      font-weight: 750;
+    .brand .lab{
+      font-size:14px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
     }
-    .subtitle{
-      color: var(--muted);
-      font-size: 13.5px;
-      line-height: 1.35;
-      max-width: 72ch;
+    .brand .title{
+      font-size:22px;
+      font-weight:750;
+      line-height:1.15;
     }
-    .grid{
+    .brand .subtitle{
+      font-size:14px;
+      color:var(--muted);
+      max-width:720px;
+    }
+    .pillrow{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .pill{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    main{
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 18px 26px;
       display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 14px;
+      grid-template-columns: 420px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      main{grid-template-columns:1fr; }
+      .pillrow{justify-content:flex-start;}
     }
     .card{
-      background: linear-gradient(180deg, var(--card), var(--card2));
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
       overflow:hidden;
     }
-    .card h2{
+    .card .head{
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:rgba(255,255,255,.02);
+    }
+    .card .head h2{
       margin:0;
-      padding: 14px 14px 10px;
-      font-size: 14px;
-      color: rgba(255,255,255,0.86);
-      border-bottom: 1px solid var(--line);
-      letter-spacing: 0.2px;
+      font-size:14px;
+      letter-spacing:.02em;
+      color:var(--text);
+      font-weight:700;
     }
-    .content{
-      padding: 14px;
-    }
-    .form{
+    .card .body{ padding:14px 16px; }
+    .grid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
     }
     .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.04);
+      display:flex; flex-direction:column; gap:6px;
     }
     .field label{
-      font-size: 12px;
-      color: var(--muted);
-      display:flex;
-      justify-content:space-between;
-      gap: 8px;
+      font-size:12px;
+      color:var(--muted);
     }
-    .hint{
-      color: rgba(255,255,255,0.55);
-      font-size: 11px;
-    }
-    input, select{
+    .field input, .field select{
       width:100%;
-      box-sizing:border-box;
-      padding: 9px 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.18);
-      color: var(--text);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:12px;
+      padding:10px 10px;
       outline:none;
+      font-size:13px;
     }
-    input:focus, select:focus{
-      border-color: rgba(59,130,246,0.55);
-      box-shadow: 0 0 0 4px rgba(59,130,246,0.14);
+    .field input:focus, .field select:focus{
+      border-color:rgba(122,162,255,.55);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.18);
     }
     .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      margin-top: 12px;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
     }
     .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:700;
+      font-size:13px;
       cursor:pointer;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--btn);
-      color: var(--text);
-      font-weight: 650;
-      letter-spacing: 0.2px;
+      transition:.15s transform ease, .15s background ease, .15s border-color ease;
+      user-select:none;
     }
-    .btn:hover{ background: var(--btn2); }
+    .btn:hover{ transform: translateY(-1px); background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.18);}
     .btn.primary{
-      background: rgba(56,210,125,0.14);
-      border-color: rgba(56,210,125,0.30);
+      background:rgba(122,162,255,.18);
+      border-color:rgba(122,162,255,.42);
     }
-    .btn.primary:hover{
-      background: rgba(56,210,125,0.20);
+    .btn.primary:hover{ background:rgba(122,162,255,.22); }
+    .btn.good{
+      background:rgba(61,220,151,.12);
+      border-color:rgba(61,220,151,.35);
     }
-    .radio{
+    .btn.bad{
+      background:rgba(255,107,107,.10);
+      border-color:rgba(255,107,107,.35);
+    }
+    .toggle{
+      display:flex; align-items:center; gap:8px;
+      font-size:13px; color:var(--muted);
+      user-select:none;
+    }
+    .toggle input{ transform: translateY(1px); }
+    .kv{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px 14px;
+      font-size:13px;
+      padding:12px 0;
+      border-bottom:1px dashed rgba(255,255,255,.12);
+    }
+    .kv:last-child{border-bottom:none}
+    .kv .k{ color:var(--muted); }
+    .kv .v{ font-family:var(--mono); color:var(--text); }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
+      font-size:13px;
+      color:var(--muted);
+    }
+    .badge strong{ color:var(--text); font-family:var(--mono); }
+    .status{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.20);
+      font-size:13px;
+      color:var(--muted);
+    }
+    .status.ok{ border-color:rgba(82,255,168,.28); }
+    .status.warn{ border-color:rgba(255,204,102,.35); }
+    .status.bad{ border-color:rgba(255,107,107,.35); }
+    .status .mono{ font-family:var(--mono); color:var(--text); }
+    .canvasWrap{
+      padding:12px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    canvas{
+      width:100%;
+      height:520px;
+      background:linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.12));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+    }
+    .footer{
+      max-width:1200px;
+      margin:0 auto;
+      padding:10px 18px 26px;
+      color:rgba(255,255,255,.55);
+      font-size:12px;
       display:flex;
-      gap:10px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.04);
-      align-items:center;
       justify-content:space-between;
-    }
-    .radio .left{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .radio small{ color: var(--muted); }
-    .radio .right{
-      display:flex;
-      gap:10px;
-      align-items:center;
+      gap:12px;
       flex-wrap:wrap;
     }
-    .radio label{
-      display:flex;
-      gap:6px;
-      align-items:center;
-      font-size: 13px;
-      color: rgba(255,255,255,0.82);
-      cursor:pointer;
+    .footer .copy{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      border-radius:12px;
+      padding:10px 12px;
     }
-    .out{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .kpi{
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(0,0,0,0.18);
-    }
-    .kpi .big{
-      font-size: 34px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      margin-top: 4px;
-    }
-    .kpi .cap{
-      color: var(--muted);
-      font-size: 12.5px;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-weight: 650;
-      font-size: 12.5px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.06);
-    }
-    .badge.ok{ border-color: rgba(56,210,125,0.35); background: rgba(56,210,125,0.12); }
-    .badge.warn{ border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.12); }
-    .badge.bad{ border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.12); }
-
-    .table{
-      width:100%;
-      border-collapse: collapse;
-      overflow:hidden;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-    }
-    .table th, .table td{
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      font-size: 13px;
-    }
-    .table th{
-      text-align:left;
-      color: rgba(255,255,255,0.80);
-      font-weight: 700;
-      background: rgba(255,255,255,0.04);
-    }
-    .table td{
-      color: rgba(255,255,255,0.88);
-    }
-    .mono{
-      font-variant-numeric: tabular-nums;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    .msg{
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(0,0,0,0.18);
-      color: rgba(255,255,255,0.80);
-      font-size: 13px;
-      line-height: 1.35;
-      display:none;
-    }
-    .msg.show{ display:block; }
-    @media (max-width: 920px){
-      .grid{ grid-template-columns: 1fr; }
-      .form{ grid-template-columns: 1fr; }
-    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <div class="title">
-        <h1>GEARCALC-PRO — Contact Ratio (Involute Spur)</h1>
-        <div class="subtitle">
-          Mini demo calculator: δίνεις βασικά γεωμετρικά στοιχεία involute spur gear και παίρνεις τον transverse contact ratio
-          <span class="mono">εα = εα</span> (ε<sub>α</sub>).
-          Περιλαμβάνει profile shift (<span class="mono">x1, x2</span>) και επιλογή center distance (auto/manual).
-        </div>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- INPUTS -->
-      <section class="card">
-        <h2>Είσοδοι</h2>
-        <div class="content">
-          <div class="form">
-            <div class="field">
-              <label>Module m <span class="hint">(mm)</span></label>
-              <input id="m" type="number" step="0.01" value="2.0" min="0.01" />
-            </div>
-            <div class="field">
-              <label>Pressure angle α <span class="hint">(deg)</span></label>
-              <input id="alpha" type="number" step="0.1" value="20" min="1" max="45" />
-            </div>
-
-            <div class="field">
-              <label>Teeth z₁ <span class="hint">(pinion)</span></label>
-              <input id="z1" type="number" step="1" value="19" min="3" />
-            </div>
-            <div class="field">
-              <label>Teeth z₂ <span class="hint">(gear)</span></label>
-              <input id="z2" type="number" step="1" value="49" min="3" />
-            </div>
-
-            <div class="field">
-              <label>Profile shift x₁ <span class="hint">(-…+)</span></label>
-              <input id="x1" type="number" step="0.01" value="0.00" />
-            </div>
-            <div class="field">
-              <label>Profile shift x₂ <span class="hint">(-…+)</span></label>
-              <input id="x2" type="number" step="0.01" value="0.00" />
-            </div>
-
-            <div class="field">
-              <label>Addendum coeff. hₐ* <span class="hint">(default 1.0)</span></label>
-              <input id="ha" type="number" step="0.01" value="1.00" min="0.2" />
-            </div>
-            <div class="field">
-              <label>Clearance coeff. c* <span class="hint">(info μόνο)</span></label>
-              <input id="c" type="number" step="0.01" value="0.25" min="0.0" />
-            </div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <div class="radio">
-              <div class="left">
-                <div style="font-weight:700; color: rgba(255,255,255,0.86);">Center distance</div>
-                <small>Auto: a = m(z₁+z₂)/2 + m(x₁+x₂). Manual: δίνεις a.</small>
-              </div>
-              <div class="right">
-                <label><input type="radio" name="aMode" value="auto" checked /> Auto</label>
-                <label><input type="radio" name="aMode" value="manual" /> Manual</label>
-                <div style="min-width:180px;">
-                  <input id="a_manual" type="number" step="0.01" placeholder="a (mm)" disabled />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <button class="btn primary" id="btnCalc">Υπολογισμός</button>
-            <button class="btn" id="btnCSV" disabled>Export CSV</button>
-            <button class="btn" id="btnReset">Reset</button>
-          </div>
-
-          <div class="msg" id="msg"></div>
-        </div>
-      </section>
-
-      <!-- OUTPUTS -->
-      <section class="card">
-        <h2>Αποτελέσματα</h2>
-        <div class="content out">
-          <div class="kpi">
-            <div class="cap">Transverse contact ratio</div>
-            <div class="big mono" id="eps">—</div>
-            <div style="margin-top:10px;">
-              <span class="badge" id="badge">—</span>
-            </div>
-          </div>
-
-          <table class="table">
-            <thead>
-              <tr><th>Μέγεθος</th><th class="mono">Τιμή</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Center distance a (mm)</td><td class="mono" id="out_a">—</td></tr>
-              <tr><td>Working pressure angle αw (deg)</td><td class="mono" id="out_aw">—</td></tr>
-              <tr><td>Length of action L (mm)</td><td class="mono" id="out_L">—</td></tr>
-              <tr><td>Base pitch pb (mm)</td><td class="mono" id="out_pb">—</td></tr>
-              <tr><td>rb1, rb2 (mm)</td><td class="mono" id="out_rb">—</td></tr>
-              <tr><td>ra1, ra2 (mm)</td><td class="mono" id="out_ra">—</td></tr>
-            </tbody>
-          </table>
-
-          <div class="subtitle" style="margin-top:10px;">
-            Σημείωση: Για spur gears αυτό είναι μόνο το ε<sub>α</sub>. Για helical αργότερα προσθέτεις και overlap ratio ε<sub>β</sub> ώστε
-            ε = ε<sub>α</sub> + ε<sub>β</sub>.
-          </div>
-        </div>
-      </section>
+<header>
+  <div class="brand">
+    <div class="lab">Machine Design Lab — NTUA</div>
+    <div class="title">GEARCALC-PRO (Demo V1)</div>
+    <div class="subtitle">
+      Involute spur gear contact ratio (ε<sub>α</sub>) with a geometric tooth preview and CSV exports.
     </div>
   </div>
+  <div class="pillrow">
+    <div class="pill">Static HTML/JS</div>
+    <div class="pill">Involute LOA extraction</div>
+    <div class="pill">Rack fillet + gear generator</div>
+  </div>
+</header>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
+<main>
+  <!-- LEFT: Inputs & Results -->
+  <section class="card">
+    <div class="head">
+      <h2>Inputs</h2>
+      <button class="btn primary" id="btnCompute">Compute</button>
+    </div>
+    <div class="body">
+      <div class="grid">
+        <div class="field">
+          <label>Module m (mm)</label>
+          <input id="m" type="number" step="0.01" value="3">
+        </div>
+        <div class="field">
+          <label>Pressure angle α (deg)</label>
+          <input id="alpha" type="number" step="0.01" value="20">
+        </div>
 
-    const state = {
-      last: null
+        <div class="field">
+          <label>Pinion teeth z₁</label>
+          <input id="z1" type="number" step="1" value="30">
+        </div>
+        <div class="field">
+          <label>Gear teeth z₂</label>
+          <input id="z2" type="number" step="1" value="31">
+        </div>
+
+        <div class="field">
+          <label>Addendum coeff Ck</label>
+          <input id="Ck" type="number" step="0.01" value="1.00">
+        </div>
+        <div class="field">
+          <label>Dedendum coeff Cf</label>
+          <input id="Cf" type="number" step="0.01" value="1.25">
+        </div>
+
+        <div class="field">
+          <label>Rack fillet radius target r<sub>c</sub> (mm)</label>
+          <input id="rc" type="number" step="0.01" value="0.30">
+        </div>
+        <div class="field">
+          <label>Sampling points (contact path)</label>
+          <input id="N" type="number" step="50" value="1200">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <label class="toggle"><input type="checkbox" id="showGear" /> Show full gear outline</label>
+        <label class="toggle"><input type="checkbox" id="showCircles" checked /> Show reference circles</label>
+        <label class="toggle"><input type="checkbox" id="autoCompute" checked /> Auto-update</label>
+      </div>
+
+      <div class="status" id="statusBox" style="margin-top:12px;">
+        Ready.
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Results + Canvas -->
+  <section class="card">
+    <div class="head">
+      <h2>Results & Geometry Preview</h2>
+      <div class="row">
+        <button class="btn good" id="btnCSV_Profile">Download profile CSV</button>
+        <button class="btn good" id="btnCSV_Tooth">Download tooth CSV</button>
+        <button class="btn" id="btnCSV_Gear">Download full gear CSV</button>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="row" style="gap:12px; flex-wrap:wrap;">
+        <div class="badge">ε<sub>α</sub>: <strong id="eps">—</strong></div>
+        <div class="badge">LOA length: <strong id="loaLen">—</strong></div>
+        <div class="badge">Base pitch p<sub>b</sub>: <strong id="pb">—</strong></div>
+      </div>
+
+      <div style="margin-top:12px;" class="card" aria-hidden="true">
+        <div class="body" style="padding:12px 16px;">
+          <div class="kv">
+            <div class="k">Pinion pitch radius r₁ (mm)</div><div class="v" id="r1">—</div>
+            <div class="k">Pinion base radius r<sub>b1</sub> (mm)</div><div class="v" id="rb1">—</div>
+            <div class="k">Pinion addendum radius r<sub>a1</sub> (mm)</div><div class="v" id="ra1">—</div>
+            <div class="k">Pinion root radius r<sub>f1</sub> (mm)</div><div class="v" id="rf1">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvasWrap">
+        <canvas id="cv"></canvas>
+
+        <div class="row" style="justify-content:space-between; gap:12px;">
+          <div class="row" style="gap:10px; flex-wrap:wrap;">
+            <div class="field" style="min-width:220px;">
+              <label>FEA segment export</label>
+              <select id="segSelect">
+                <option value="rootL">01_rootCircle_L</option>
+                <option value="troL">02_trochoid_L</option>
+                <option value="invL">03_involute_L</option>
+                <option value="add">04_addendumArc</option>
+                <option value="invR">05_involute_R</option>
+                <option value="troR">06_trochoid_R</option>
+                <option value="rootR">07_rootCircle_R</option>
+              </select>
+            </div>
+            <button class="btn" id="btnCSV_Segment">Download selected segment CSV</button>
+          </div>
+          <div class="pill" style="align-self:flex-end;">Units: mm</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="footer">
+  <div class="copy">
+    © <span id="year"></span> Machine Design Lab, National Technical University of Athens (NTUA). All rights reserved.
+  </div>
+  <div class="copy">
+    GEARCALC-PRO Demo V1 — published via GitHub Pages.
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   GEARCALC-PRO DEMO V1 (Single-file)
+   - Involute rack generation -> LOA extraction -> profile
+   - rack_fillet_v2 (ported) -> root completion
+   - gear_generator (ported) -> tooth + full gear + FEA segments
+   ============================================================ */
+
+(function(){
+  "use strict";
+
+  // ---------- DOM ----------
+  const el = (id) => document.getElementById(id);
+
+  const ui = {
+    m: el("m"), alpha: el("alpha"), z1: el("z1"), z2: el("z2"),
+    Ck: el("Ck"), Cf: el("Cf"), rc: el("rc"), N: el("N"),
+    showGear: el("showGear"), showCircles: el("showCircles"), autoCompute: el("autoCompute"),
+    btnCompute: el("btnCompute"),
+    eps: el("eps"), loaLen: el("loaLen"), pb: el("pb"),
+    r1: el("r1"), rb1: el("rb1"), ra1: el("ra1"), rf1: el("rf1"),
+    status: el("statusBox"),
+    cv: el("cv"),
+    btnCSV_Profile: el("btnCSV_Profile"),
+    btnCSV_Tooth: el("btnCSV_Tooth"),
+    btnCSV_Gear: el("btnCSV_Gear"),
+    segSelect: el("segSelect"),
+    btnCSV_Segment: el("btnCSV_Segment")
+  };
+
+  el("year").textContent = new Date().getFullYear();
+
+  // ---------- App state ----------
+  const state = {
+    last: null,              // last computed geometry bundle
+    lastProfilePP: null,     // {x_pp,y_pp} pitch-point frame profile
+    lastTooth: null,         // {x_tooth,y_tooth}
+    lastGear: null,          // {x_tot,y_tot}
+    lastSeg: null,           // seg struct
+    lastLOA: null            // {x_LOA,y_LOA}
+  };
+
+  // ---------- Helpers ----------
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  function hypot(x,y){ return Math.hypot(x,y); }
+  function deg2rad(d){ return d*Math.PI/180; }
+
+  function fmt(v, nd=6){
+    if (!isFinite(v)) return "—";
+    const s = v.toFixed(nd);
+    // trim trailing zeros for nicer look
+    return s.replace(/(\.\d*?[1-9])0+$/,'$1').replace(/\.0+$/,'');
+  }
+
+  function setStatus(kind, msg){
+    ui.status.className = "status " + (kind || "");
+    ui.status.innerHTML = msg;
+  }
+
+  function downloadCSV(filename, rows){
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function arcXY(r, th1, th2, N, includeEnds){
+    const pts = [];
+    if (N < 2) N = 2;
+    let th;
+    if (includeEnds){
+      th = linspace(th1, th2, N);
+    } else {
+      th = linspace(th1, th2, N+2).slice(1,-1);
+    }
+    for (let i=0;i<th.length;i++){
+      const t = th[i];
+      // legacy convention: x = r*sin(theta), y = r*cos(theta)
+      pts.push([ r*Math.sin(t), r*Math.cos(t) ]);
+    }
+    return pts;
+  }
+
+  function linspace(a,b,n){
+    if (n<=1) return [a];
+    const arr = new Array(n);
+    const step = (b-a)/(n-1);
+    for (let i=0;i<n;i++) arr[i] = a + step*i;
+    return arr;
+  }
+
+  function rotateXY(x, y, ang){
+    const c = Math.cos(ang), s = Math.sin(ang);
+    return [ x*c - y*s, x*s + y*c ];
+  }
+
+  // Five-point non-uniform derivative (ported from your MATLAB stencil)
+  // Returns df/dx for f(x) with 5-point local Lagrange weights.
+  function fivePointNonUniformDerivative(x, f){
+    const n = x.length;
+    if (n < 5) throw new Error("At least 5 points are required for 5-point derivative.");
+    const dfdx = new Array(n).fill(0);
+    for (let i=0;i<n;i++){
+      let idx;
+      if (i <= 1) idx = [0,1,2,3,4];
+      else if (i >= n-2) idx = [n-5,n-4,n-3,n-2,n-1];
+      else idx = [i-2,i-1,i,i+1,i+2];
+
+      const xsub = idx.map(j => x[j]);
+      const fsub = idx.map(j => f[j]);
+      const h = xsub.map(xx => xx - x[i]);
+
+      const w = new Array(5).fill(0);
+      for (let j=0;j<5;j++){
+        let denom = 1;
+        for (let m=0;m<5;m++){
+          if (m !== j) denom *= (h[j] - h[m]);
+        }
+        let num = 0;
+        for (let m=0;m<5;m++){
+          if (m === j) continue;
+          let prod = 1;
+          for (let k=0;k<5;k++){
+            if (k !== j && k !== m) prod *= (-h[k]);
+          }
+          num += prod;
+        }
+        w[j] = num / denom;
+      }
+      let val = 0;
+      for (let j=0;j<5;j++) val += w[j]*fsub[j];
+      dfdx[i] = val;
+    }
+    return dfdx;
+  }
+
+  // ---------- Core: LOA extraction + profile generation ----------
+  function computeInvoluteLOAandProfile({
+    m, z1, z2, alphaRad, Ck, Cf, N
+  }){
+    if (!(m>0)) throw new Error("Module m must be > 0.");
+    if (!(z1>=3 && Number.isInteger(z1))) throw new Error("z1 must be an integer ≥ 3.");
+    if (!(z2>=3 && Number.isInteger(z2))) throw new Error("z2 must be an integer ≥ 3.");
+    if (!(alphaRad>0 && alphaRad<Math.PI/2)) throw new Error("Pressure angle must be in (0, 90°).");
+    if (!(Ck>0 && Cf>0)) throw new Error("Ck and Cf must be > 0.");
+    if (!(N>=200 && Number.isFinite(N))) throw new Error("Sampling points must be ≥ 200.");
+
+    const ro1 = z1*m/2;
+    const ro2 = z2*m/2;
+    const rb1 = ro1*Math.cos(alphaRad);
+    const rb2 = ro2*Math.cos(alphaRad);
+
+    const hk = Ck*m;
+    const hf = Cf*m;
+    const ra1 = ro1 + hk;
+    const ra2 = ro2 + hk;
+
+    // Rack line (ideal involute generating rack flank)
+    const yr = linspace(-Cf*m, Ck*m, N);
+    const xr = yr.map(v => -Math.tan(alphaRad)*v);
+
+    // dy/dx of rack (line) is constant: dy/dx = -1/tan(alpha)
+    // Still keep derivative pipeline-compatible:
+    // const dydx = fivePointNonUniformDerivative(xr, yr);
+    const dydx = yr.map(() => -1/Math.tan(alphaRad));
+
+    // Rack translation K and corresponding pinion rotation
+    const K = yr.map((y,i) => -(y*dydx[i] + xr[i]));
+    const theta = K.map(k => k / ro1);
+
+    // Contact path points (pitch-point frame)
+    const xcp = xr.map((x,i) => x + K[i]);
+    const ycp = yr.slice();
+
+    // LOA region is where points are inside both addendum circles
+    // Pitch-point frame centers:
+    // O1 = [0, -ro1], O2 = [0, +ro2]
+    const mask = xcp.map((x,i) => {
+      const y = ycp[i];
+      const rA1 = Math.hypot(x, y + ro1);
+      const rA2 = Math.hypot(x, y - ro2);
+      return (rA1 <= ra1) && (rA2 <= ra2);
+    });
+
+    // Find longest contiguous true-run (same logic as your MATLAB)
+    let runs = [];
+    let inRun = false;
+    let s = 0;
+    for (let i=0;i<mask.length;i++){
+      if (!inRun && mask[i]){ inRun=true; s=i; }
+      if (inRun && (!mask[i] || i===mask.length-1)){
+        const e = (mask[i] && i===mask.length-1) ? i : (i-1);
+        runs.push([s,e]);
+        inRun=false;
+      }
+    }
+    if (runs.length === 0) throw new Error("LOA extraction failed: no points inside both addendum circles.");
+
+    let best = runs[0], bestLen = -1;
+    for (const [a,b] of runs){
+      let L = 0;
+      for (let k=a;k<b;k++){
+        const dx = xcp[k+1]-xcp[k];
+        const dy = ycp[k+1]-ycp[k];
+        L += Math.hypot(dx,dy);
+      }
+      if (L > bestLen){ bestLen = L; best=[a,b]; }
+    }
+    const [i0,i1] = best;
+
+    const xLOA = xcp.slice(i0, i1+1);
+    const yLOA = ycp.slice(i0, i1+1);
+    const thLOA = theta.slice(i0, i1+1);
+    const KLOA = K.slice(i0, i1+1);
+
+    // Pinion profile (pitch-point frame), from LOA kinematics
+    const xPP = new Array(xLOA.length);
+    const yPP = new Array(xLOA.length);
+    for (let i=0;i<xLOA.length;i++){
+      const x = xLOA[i], y = yLOA[i], th = thLOA[i];
+      xPP[i] =  x*Math.cos(th) - (y + ro1)*Math.sin(th);
+      yPP[i] =  x*Math.sin(th) + (y + ro1)*Math.cos(th) - ro1;
+    }
+
+    // LOA length and base pitch
+    const loaLen = bestLen; // computed along that run
+    const pb = Math.PI*m*Math.cos(alphaRad);
+    const eps = loaLen / pb;
+
+    return {
+      ro1, ro2, rb1, rb2, ra1, ra2,
+      rf1: ro1 - hf,
+      m, z1, z2, alphaRad, Ck, Cf,
+      xLOA, yLOA, thLOA, KLOA,
+      xrLOA: xLOA.map((x,i)=> x - KLOA[i]),
+      yrLOA: yLOA.slice(),
+      xPP, yPP,
+      loaLen, pb, eps
     };
+  }
 
-    function deg2rad(d){ return d * Math.PI / 180; }
-    function rad2deg(r){ return r * 180 / Math.PI; }
-    function fmt(x, n=6){
-      if (!isFinite(x)) return "—";
-      const s = Number(x).toFixed(n);
-      // trim trailing zeros (nice UI)
-      return s.replace(/(\.\d*?[1-9])0+$/,"$1").replace(/\.0$/,"");
+  // ---------- rack_fillet_v2 (ported, compute-only) ----------
+  function eval_rc_from_dy(dy_try, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy){
+    const yrl = y_end0 - dy_try;
+    const xrl = x_end0 + slope_dxdy*(yrl - y_end0);
+
+    const phir = phir0;
+    const delta = delta0;
+
+    let rc = (yrl + Math.tan(phir)*xrl + Cf*m - Math.tan(phir)*(K0 - delta/2)) /
+             (1 - Math.cos(phir) - Math.tan(phir)*Math.sin(phir));
+
+    const yrend = rc*(1 - Math.cos(phir)) - Cf*m;
+
+    if (yrend > yrl){
+      rc = (yrl + Cf*m) / (1 - Math.cos(phir));
     }
 
-    function setMsg(text, type="warn"){
-      const el = $("msg");
-      if (!text){
-        el.classList.remove("show");
-        el.textContent = "";
-        return;
-      }
-      el.classList.add("show");
-      el.style.borderColor =
-        type==="bad" ? "rgba(255,107,107,0.35)" :
-        type==="ok"  ? "rgba(56,210,125,0.35)" :
-                      "rgba(255,204,102,0.35)";
-      el.style.background =
-        type==="bad" ? "rgba(255,107,107,0.10)" :
-        type==="ok"  ? "rgba(56,210,125,0.10)" :
-                      "rgba(255,204,102,0.10)";
-      el.textContent = text;
+    const xtest = (-Cf*m - yrl - Math.tan(phir)*xrl) / (-Math.tan(phir));
+    const useLowerLine = (xtest > K0);
+
+    if (useLowerLine){
+      const yrpr = yrl - offset*m;
+      const xrpr = (yrpr - yrl - Math.tan(phir)*xrl) / (-Math.tan(phir));
+      rc = (yrpr + Math.tan(phir_new)*xrpr + Cf*m - Math.tan(phir_new)*(K0 - delta0/2)) /
+           (1 - Math.cos(phir_new) - Math.tan(phir_new)*Math.sin(phir_new));
+    }
+    return rc;
+  }
+
+  function rack_fillet_v2(m, Z, xr_in, yr_in, Cf, cdel, rc_target, phir_new, offset){
+    let xr = xr_in.slice();
+    let yr = yr_in.slice();
+
+    if (xr.length !== yr.length || xr.length < 2) throw new Error("rack_fillet: xr/yr must have same length and at least 2 points.");
+
+    // Ensure lower end at END (yr decreases toward end)
+    if (yr[yr.length-1] > yr[0]){
+      xr.reverse(); yr.reverse();
     }
 
-    function qualityBadge(eps){
-      const b = $("badge");
-      b.className = "badge";
-      if (!isFinite(eps)){
-        b.textContent = "—";
-        return;
+    const dx_last = xr[xr.length-1] - xr[xr.length-2];
+    const dy_last = yr[yr.length-1] - yr[yr.length-2];
+    if (Math.abs(dy_last) < 1e-12) throw new Error("rack_fillet: last rack segment has dy≈0.");
+
+    const slope_dxdy = dx_last / dy_last;
+    const x_end0 = xr[xr.length-1];
+    const y_end0 = yr[yr.length-1];
+
+    const ro = m*Z/2;
+    const theta_rack_0 = 0.495*Math.PI/Z;
+    const K0 = theta_rack_0*ro + 0.495*Math.PI*m/2;
+    const delta0 = cdel*m;
+
+    const arack_end0 = (yr[yr.length-2] - yr[yr.length-1]) / (xr[xr.length-2] - xr[xr.length-1]);
+    const phir0 = Math.atan(-arack_end0);
+
+    // Solve dy_ext
+    let dy_ext;
+    if (rc_target == null || !isFinite(rc_target) || rc_target <= 0){
+      dy_ext = 0.15*m;
+    } else {
+      const tol_rc = 1e-6*Math.max(1, Math.abs(rc_target));
+      const max_iter = 45;
+
+      let dy_lo = 0.0;
+      let f_lo = eval_rc_from_dy(dy_lo, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+
+      let dy_hi = 0.15*m;
+      let f_hi = eval_rc_from_dy(dy_hi, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+
+      const dy_hi_max = 20*m;
+      let k_expand = 0;
+      while ((f_lo*f_hi > 0) && (dy_hi < dy_hi_max) && (k_expand < 30)){
+        dy_hi = Math.min(dy_hi*1.6 + 1e-6, dy_hi_max);
+        f_hi = eval_rc_from_dy(dy_hi, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+        k_expand++;
       }
-      // πολύ απλό heuristic για demo
-      if (eps >= 1.2){
-        b.classList.add("ok");
-        b.textContent = "OK: καλή επικάλυψη (>= 1.2)";
-      } else if (eps >= 1.0){
-        b.classList.add("warn");
-        b.textContent = "ΟΚ οριακά (1.0 – 1.2)";
+
+      if (f_lo*f_hi <= 0){
+        // Bisection
+        dy_ext = dy_hi;
+        for (let it=0; it<max_iter; it++){
+          const dy_mid = 0.5*(dy_lo + dy_hi);
+          const f_mid = eval_rc_from_dy(dy_mid, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+
+          if (Math.abs(f_mid) < tol_rc || Math.abs(dy_hi-dy_lo) < 1e-10){
+            dy_ext = dy_mid; break;
+          }
+          if (f_lo*f_mid <= 0){
+            dy_hi = dy_mid; f_hi = f_mid;
+          } else {
+            dy_lo = dy_mid; f_lo = f_mid;
+          }
+          dy_ext = dy_mid;
+        }
       } else {
-        b.classList.add("bad");
-        b.textContent = "Χαμηλή επικάλυψη (< 1.0)";
+        // Secant fallback
+        let dy0 = 0.0, f0 = f_lo;
+        let dy1 = 0.15*m, f1 = eval_rc_from_dy(dy1, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+        dy_ext = dy1;
+
+        for (let it=0; it<max_iter; it++){
+          const den = (f1 - f0);
+          let dy2;
+          if (Math.abs(den) < 1e-14){
+            dy2 = Math.min(dy1 + 0.05*m, dy_hi_max);
+          } else {
+            dy2 = dy1 - f1*(dy1-dy0)/den;
+            dy2 = clamp(dy2, 0.0, dy_hi_max);
+          }
+          const f2 = eval_rc_from_dy(dy2, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
+
+          dy0 = dy1; f0 = f1;
+          dy1 = dy2; f1 = f2;
+          dy_ext = dy2;
+
+          if (Math.abs(f2) < tol_rc) break;
+        }
       }
     }
 
-    function readInputs(){
-      const m = Number($("m").value);
-      const alpha_deg = Number($("alpha").value);
-      const z1 = Number($("z1").value);
-      const z2 = Number($("z2").value);
-      const x1 = Number($("x1").value);
-      const x2 = Number($("x2").value);
-      const ha = Number($("ha").value);
-      const c = Number($("c").value); // info only for now
-
-      const mode = document.querySelector('input[name="aMode"]:checked')?.value ?? "auto";
-      const a_manual = Number($("a_manual").value);
-
-      return { m, alpha_deg, z1, z2, x1, x2, ha, c, mode, a_manual };
+    // Extend rack downward by dy_ext along last segment
+    if (dy_ext > 1e-12){
+      const y_end1 = y_end0 - dy_ext;
+      const stepext = 1.5e-3;
+      const Next = Math.max(5, Math.ceil(Math.abs(y_end1 - y_end0)/stepext));
+      const y_ext = linspace(y_end0, y_end1, Next+1).slice(1); // avoid duplicating endpoint
+      const x_ext = y_ext.map(yv => xr[xr.length-1] + slope_dxdy*(yv - y_end0));
+      xr = xr.concat(x_ext);
+      yr = yr.concat(y_ext);
     }
 
-    function validate(inp){
-      const errs = [];
-      if (!(inp.m > 0)) errs.push("Το module m πρέπει να είναι > 0.");
-      if (!(inp.z1 >= 3 && Number.isFinite(inp.z1))) errs.push("Το z1 πρέπει να είναι ακέραιο >= 3.");
-      if (!(inp.z2 >= 3 && Number.isFinite(inp.z2))) errs.push("Το z2 πρέπει να είναι ακέραιο >= 3.");
-      if (!(inp.alpha_deg > 0 && inp.alpha_deg < 60)) errs.push("Η α πρέπει να είναι σε λογικά όρια (0–60 deg).");
-      if (!(inp.ha > 0)) errs.push("Το hₐ* πρέπει να είναι > 0.");
-      if (inp.mode === "manual" && !(inp.a_manual > 0)) errs.push("Δώσε manual center distance a > 0.");
-      return errs;
+    // Recompute endpoint slope
+    const arack_end = (yr[yr.length-2] - yr[yr.length-1]) / (xr[xr.length-2] - xr[xr.length-1]);
+    let phir = Math.atan(-arack_end);
+
+    const xrlptc = xr[xr.length-1];
+    const yrlptc = yr[yr.length-1];
+
+    let delta = cdel*m;
+
+    // Fillet circle radius
+    let rc = (yrlptc + Math.tan(phir)*xrlptc + Cf*m - Math.tan(phir)*(K0 - delta/2)) /
+             (1 - Math.cos(phir) - Math.tan(phir)*Math.sin(phir));
+
+    let yrc0 = -Cf*m + rc;
+    let xrc0 = K0 - delta/2;
+
+    let xrend = -rc*Math.sin(phir) + xrc0;
+    let yrend =  rc*(1 - Math.cos(phir)) - Cf*m;
+
+    // Clamp
+    if (yrend > yrlptc){
+      yrend = yrlptc;
+      xrend = xrlptc;
+      rc = (yrlptc + Cf*m) / (1 - Math.cos(phir));
+      delta = 2*(K0 - xrlptc - rc*Math.sin(phir));
+      yrc0 = -Cf*m + rc;
+      xrc0 = K0 - delta/2;
     }
 
-    function computeContactRatio(inp){
-      const alpha = deg2rad(inp.alpha_deg);
+    // Two-line branch decision
+    const xtest = (-Cf*m - yrlptc - Math.tan(phir)*xrlptc) / (-Math.tan(phir));
+    const useLowerLine = (xtest > K0);
 
-      const r1 = inp.m * inp.z1 / 2;
-      const r2 = inp.m * inp.z2 / 2;
+    let xrpr=NaN, yrpr=NaN;
+    let phiArc = phir;
 
-      const rb1 = r1 * Math.cos(alpha);
-      const rb2 = r2 * Math.cos(alpha);
+    if (useLowerLine){
+      yrpr = yrlptc - offset*m;
+      xrpr = (yrpr - yrlptc - Math.tan(phir)*xrlptc) / (-Math.tan(phir));
 
-      const a_auto = inp.m * (inp.z1 + inp.z2)/2 + inp.m * (inp.x1 + inp.x2);
-      const a = (inp.mode === "manual") ? inp.a_manual : a_auto;
+      rc = (yrpr + Math.tan(phir_new)*xrpr + Cf*m - Math.tan(phir_new)*(K0 - delta/2)) /
+           (1 - Math.cos(phir_new) - Math.tan(phir_new)*Math.sin(phir_new));
 
-      const cos_aw = (rb1 + rb2) / a;
-      if (!(cos_aw > 0 && cos_aw <= 1.0)){
-        throw new Error("Αδύνατο geometry: (rb1+rb2)/a πρέπει να είναι στο (0, 1]. Έλεγξε center distance / shifts.");
+      yrc0 = -Cf*m + rc;
+      xrc0 = K0 - delta/2;
+
+      xrend = -rc*Math.sin(phir_new) + xrc0;
+      yrend =  rc*(1 - Math.cos(phir_new)) - Cf*m;
+
+      phiArc = phir_new;
+    }
+
+    // Straight segment(s) down to arc start
+    let xr_lin = [], yr_lin = [], dydx_lin = [];
+    let steplin = 1.5e-3;
+    if (Math.abs(yrlptc - yrend) < steplin){
+      steplin = Math.abs(yrlptc - yrend)/5 + 1e-12;
+    }
+
+    if (!useLowerLine){
+      let ylin = [];
+      for (let yv=yrlptc; yv>=yrend; yv-=steplin) ylin.push(yv);
+      if (ylin.length===0 || ylin[ylin.length-1] !== yrend) ylin.push(yrend);
+
+      const xlin = ylin.map(yv => (yv - (yrlptc + Math.tan(phir)*xrlptc)) / (-Math.tan(phir)));
+      xr_lin = xlin;
+      yr_lin = ylin;
+      dydx_lin = ylin.map(() => -Math.tan(phir));
+    } else {
+      // line 1: endpoint to (xrpr,yrpr)
+      let ylin1 = [];
+      for (let yv=yrlptc; yv>=yrpr; yv-=steplin) ylin1.push(yv);
+      if (ylin1.length===0 || ylin1[ylin1.length-1] !== yrpr) ylin1.push(yrpr);
+
+      const xlin1 = ylin1.map(yv => (yv - (yrlptc + Math.tan(phir)*xrlptc)) / (-Math.tan(phir)));
+
+      let steplin2 = steplin;
+      if (Math.abs(yrpr - yrend) < steplin2){
+        steplin2 = Math.abs(yrpr - yrend)/5 + 1e-12;
       }
-      const alpha_w = Math.acos(cos_aw);
+      let ylin2 = [];
+      for (let yv=yrpr; yv>=yrend; yv-=steplin2) ylin2.push(yv);
+      if (ylin2.length===0 || ylin2[ylin2.length-1] !== yrend) ylin2.push(yrend);
 
-      const ra1 = r1 + inp.m * (inp.ha + inp.x1);
-      const ra2 = r2 + inp.m * (inp.ha + inp.x2);
+      const xlin2 = ylin2.map(yv => (yv - (yrpr + Math.tan(phir_new)*xrpr)) / (-Math.tan(phir_new)));
 
-      const s1 = ra1*ra1 - rb1*rb1;
-      const s2 = ra2*ra2 - rb2*rb2;
-      if (s1 <= 0 || s2 <= 0){
-        throw new Error("Αδύνατο geometry: ra^2 - rb^2 <= 0. (ra πρέπει να είναι > rb). Έλεγξε hₐ* και x.");
+      xr_lin = xlin1.concat(xlin2.slice(1));
+      yr_lin = ylin1.concat(ylin2.slice(1));
+      dydx_lin = ylin1.map(() => -Math.tan(phir)).concat(ylin2.slice(1).map(() => -Math.tan(phir_new)));
+    }
+
+    // Arc from phiArc down to 0
+    const dphi = deg2rad(0.5);
+    let thrc = [];
+    for (let t=phiArc; t>=0; t-=dphi) thrc.push(t);
+    if (thrc.length===0 || thrc[thrc.length-1] !== 0) thrc.push(0);
+
+    const xr_rc = thrc.map(t => -rc*Math.sin(t) + xrc0);
+    const yr_rc = thrc.map(t => -rc*Math.cos(t) + yrc0);
+    const dydx_rc = thrc.map(t => -Math.tan(t));
+
+    const xr_tr = xr_lin.concat(xr_rc);
+    const yr_tr = yr_lin.concat(yr_rc);
+    const dydx_tr = dydx_lin.concat(dydx_rc);
+
+    // Map rack trace to pinion-centered frame
+    const x_pin_tr = new Array(xr_tr.length);
+    const y_pin_tr = new Array(xr_tr.length);
+
+    for (let i=0;i<xr_tr.length;i++){
+      const K_tr = -(yr_tr[i]*dydx_tr[i] + xr_tr[i]);
+      const th = K_tr / ro;
+      x_pin_tr[i] = (xr_tr[i] + K_tr)*Math.cos(th) - (yr_tr[i] + ro)*Math.sin(th);
+      y_pin_tr[i] = (xr_tr[i] + K_tr)*Math.sin(th) + (yr_tr[i] + ro)*Math.cos(th);
+    }
+
+    return { x_pin_tr, y_pin_tr };
+  }
+
+  // ---------- gear_generator (ported, FEA-ready, gap-safe) ----------
+  function snapEndToStart(A, B, tol){
+    if (!A || !B || A.length===0 || B.length===0) return [A,B];
+    const pA = A[A.length-1];
+    const pB = B[0];
+    const gap = Math.hypot(pA[0]-pB[0], pA[1]-pB[1]);
+    if (gap <= tol){
+      const p = [0.5*(pA[0]+pB[0]), 0.5*(pA[1]+pB[1])];
+      A[A.length-1] = p;
+      B[0] = p;
+    }
+    return [A,B];
+  }
+
+  function dedupeConsecutive(P){
+    if (!P || P.length<2) return P;
+    const out = [P[0]];
+    for (let i=1;i<P.length;i++){
+      const a = out[out.length-1], b = P[i];
+      if (a[0] !== b[0] || a[1] !== b[1]) out.push(b);
+    }
+    return out;
+  }
+
+  function gear_generator(x, y, x_tr, y_tr, Z, writeFlag){
+    // x,y: right flank (gear-centered), expected tip->down
+    // x_tr,y_tr: right completion (join->root)
+    if (x.length < 2 || y.length < 2 || x.length !== y.length) throw new Error("gear_generator: invalid x,y.");
+    if (x_tr.length < 2 || y_tr.length < 2 || x_tr.length !== y_tr.length) throw new Error("gear_generator: invalid x_tr,y_tr.");
+    if (!(Z>=3 && Number.isInteger(Z))) throw new Error("gear_generator: Z must be integer >=3.");
+
+    // Ensure ordering
+    const r_in = x.map((vx,i)=> Math.hypot(vx,y[i]));
+    if (r_in[0] < r_in[r_in.length-1]){
+      x = x.slice().reverse(); y = y.slice().reverse();
+    }
+    const r_tr = x_tr.map((vx,i)=> Math.hypot(vx,y_tr[i]));
+    if (r_tr[r_tr.length-1] > r_tr[0]){
+      x_tr = x_tr.slice().reverse(); y_tr = y_tr.slice().reverse();
+    }
+
+    // Addendum arc (legacy convention)
+    const th_pin_div_k = 40;
+    const rA = Math.hypot(x[0], y[0]);
+    const th_tip_R = Math.atan2(x[0], y[0]);
+    const th_tip_L = Math.atan2(-x[0], y[0]);
+
+    const th_k = linspace(th_tip_L, th_tip_R, th_pin_div_k+1);
+    const xk = th_k.slice(1,-1).map(t => rA*Math.sin(t));
+    const yk = th_k.slice(1,-1).map(t => rA*Math.cos(t));
+
+    // Root arc to next pitch (legacy)
+    const th_div_f = 20;
+    const rF = Math.hypot(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
+    const th_root_R = Math.atan2(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
+    const th_root_L = Math.atan2(-x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
+    const th_root_L_next = th_root_L + 2*Math.PI/Z;
+
+    const th_f = linspace(th_root_R, th_root_L_next, th_div_f+1);
+    const xf = th_f.slice(1,-1).map(t => rF*Math.sin(t));
+    const yf = th_f.slice(1,-1).map(t => rF*Math.cos(t));
+
+    // Single tooth outline (legacy)
+    const flankstep = 1;
+    const x_tooth = [];
+    const y_tooth = [];
+
+    // LEFT trochoid: root -> join (mirror of right trochoid reversed)
+    for (let i=x_tr.length-1;i>=0;i-=flankstep){
+      x_tooth.push(-x_tr[i]); y_tooth.push(y_tr[i]);
+    }
+    // LEFT involute: join -> tip (mirror of right involute reversed)
+    for (let i=x.length-1;i>=0;i-=flankstep){
+      x_tooth.push(-x[i]); y_tooth.push(y[i]);
+    }
+    // addendum arc
+    for (let i=0;i<xk.length;i++){
+      x_tooth.push(xk[i]); y_tooth.push(yk[i]);
+    }
+    // RIGHT involute: tip -> join
+    for (let i=0;i<x.length;i+=flankstep){
+      x_tooth.push(x[i]); y_tooth.push(y[i]);
+    }
+    // RIGHT trochoid: join -> root
+    for (let i=0;i<x_tr.length;i+=flankstep){
+      x_tooth.push(x_tr[i]); y_tooth.push(y_tr[i]);
+    }
+    // root arc to next pitch
+    for (let i=0;i<xf.length;i++){
+      x_tooth.push(xf[i]); y_tooth.push(yf[i]);
+    }
+
+    // Full gear by rotation
+    const Ntooth = x_tooth.length;
+    const x_tot = new Array(Z*Ntooth + 1);
+    const y_tot = new Array(Z*Ntooth + 1);
+
+    for (let k=1;k<=Z;k++){
+      const rot = -(k-1)*2*Math.PI/Z;
+      const c = Math.cos(rot), s = Math.sin(rot);
+      const istart = (k-1)*Ntooth;
+      for (let i=0;i<Ntooth;i++){
+        const xx = x_tooth[i], yy = y_tooth[i];
+        x_tot[istart+i] = xx*c - yy*s;
+        y_tot[istart+i] = xx*s + yy*c;
+      }
+    }
+    x_tot[x_tot.length-1] = x_tot[0];
+    y_tot[y_tot.length-1] = y_tot[0];
+
+    // FEA sector segments (θ ∈ [-pi/Z, +pi/Z])
+    const thetaB_L = -Math.PI/Z;
+    const thetaB_R =  Math.PI/Z;
+
+    const th_tip_L2 = Math.atan2(-x[0], y[0]);
+    const th_tip_R2 = Math.atan2( x[0], y[0]);
+
+    const th_root_R2 = Math.atan2( x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
+    const th_root_L2 = Math.atan2(-x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
+
+    const NrootSeg = 40;
+    const NaddSeg  = 80;
+
+    let seg = {};
+
+    seg.rootL = (th_root_L2 > thetaB_L) ? arcXY(rF, thetaB_L, th_root_L2, NrootSeg, true) : [];
+    seg.troL  = x_tr.slice().reverse().map((vx,i)=> [-vx, y_tr[y_tr.length-1-i]]);
+    seg.invL  = x.slice().reverse().map((vx,i)=> [-vx, y[y.length-1-i]]);
+    seg.add   = arcXY(rA, th_tip_L2, th_tip_R2, NaddSeg, true);
+    seg.invR  = x.map((vx,i)=> [vx, y[i]]);
+    seg.troR  = x_tr.map((vx,i)=> [vx, y_tr[i]]);
+    seg.rootR = (thetaB_R > th_root_R2) ? arcXY(rF, th_root_R2, thetaB_R, NrootSeg, true) : [];
+
+    // Snap junctions (gap-safe)
+    const tolSnap = Math.max(1e-6, 1e-3*Math.max(1, rA));
+    [seg.rootL, seg.troL] = snapEndToStart(seg.rootL, seg.troL, tolSnap);
+    [seg.troL,  seg.invL] = snapEndToStart(seg.troL,  seg.invL,  tolSnap);
+    [seg.invL,  seg.add ] = snapEndToStart(seg.invL,  seg.add,   tolSnap);
+    [seg.add,   seg.invR] = snapEndToStart(seg.add,   seg.invR,  tolSnap);
+    [seg.invR,  seg.troR] = snapEndToStart(seg.invR,  seg.troR,  tolSnap);
+    [seg.troR,  seg.rootR]= snapEndToStart(seg.troR,  seg.rootR, tolSnap);
+
+    // Dedupe exact duplicates
+    for (const k of ["rootL","troL","invL","add","invR","troR","rootR"]){
+      seg[k] = dedupeConsecutive(seg[k]);
+    }
+
+    return {
+      x_tot, y_tot,
+      x_tooth, y_tooth,
+      seg
+    };
+  }
+
+  // ---------- Prepend connector if needed (to ensure continuity flank->trochoid) ----------
+  function prepend_connector_if_needed(x_in, y_in, xtr_in, ytr_in, Nbridge=25){
+    if (!x_in.length || !xtr_in.length) return {xtr:xtr_in, ytr:ytr_in};
+    const p_end = [x_in[x_in.length-1], y_in[y_in.length-1]];
+    const p0 = [xtr_in[0], ytr_in[0]];
+    const d = Math.hypot(p_end[0]-p0[0], p_end[1]-p0[1]);
+    if (d < 1e-9) return {xtr:xtr_in, ytr:ytr_in};
+
+    Nbridge = Math.max(5, Math.round(Nbridge));
+    const xb = linspace(p_end[0], p0[0], Nbridge);
+    const yb = linspace(p_end[1], p0[1], Nbridge);
+
+    const xtr_new = xb.slice(0,-1).concat(xtr_in);
+    const ytr_new = yb.slice(0,-1).concat(ytr_in);
+    return {xtr:xtr_new, ytr:ytr_new};
+  }
+
+  // ---------- Drawing ----------
+  function drawGeometry(bundle){
+    const cv = ui.cv;
+    const ctx = cv.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+
+    // Resize to CSS size
+    const cssW = cv.clientWidth;
+    const cssH = cv.clientHeight;
+    cv.width = Math.round(cssW * dpr);
+    cv.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    // Background
+    ctx.clearRect(0,0,cssW,cssH);
+
+    const showGear = ui.showGear.checked;
+    const showCircles = ui.showCircles.checked;
+
+    const tooth = state.lastTooth;
+    if (!tooth) return;
+
+    const pointsToDraw = [];
+    if (showGear && state.lastGear){
+      const xg = state.lastGear.x_tot;
+      const yg = state.lastGear.y_tot;
+      for (let i=0;i<xg.length;i++) pointsToDraw.push([xg[i], yg[i]]);
+    } else {
+      for (let i=0;i<tooth.x_tooth.length;i++) pointsToDraw.push([tooth.x_tooth[i], tooth.y_tooth[i]]);
+    }
+
+    // Fit bounds
+    let xmin=+Infinity, xmax=-Infinity, ymin=+Infinity, ymax=-Infinity;
+    for (const [x,y] of pointsToDraw){
+      xmin = Math.min(xmin,x); xmax = Math.max(xmax,x);
+      ymin = Math.min(ymin,y); ymax = Math.max(ymax,y);
+    }
+
+    // Add circles extents if enabled (better framing)
+    const rMax = bundle ? bundle.ra1 : 1;
+    if (showCircles){
+      xmin = Math.min(xmin, -rMax); xmax = Math.max(xmax, rMax);
+      ymin = Math.min(ymin, -rMax); ymax = Math.max(ymax, rMax);
+    }
+
+    const w = xmax-xmin, h = ymax-ymin;
+    const pad = 18;
+    const sx = (cssW - 2*pad) / (w || 1);
+    const sy = (cssH - 2*pad) / (h || 1);
+    const s = Math.min(sx, sy);
+
+    const cx = pad + (cssW - 2*pad)/2;
+    const cy = pad + (cssH - 2*pad)/2;
+    const mx = (xmin+xmax)/2;
+    const my = (ymin+ymax)/2;
+
+    function X(x){ return cx + (x - mx)*s; }
+    function Y(y){ return cy - (y - my)*s; }
+
+    // Reference circles
+    if (showCircles){
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.setLineDash([6,6]);
+      ctx.strokeStyle = "rgba(255,255,255,0.20)";
+
+      drawCircle(ctx, X(0), Y(0), bundle.rf1*s); // root
+      drawCircle(ctx, X(0), Y(0), bundle.ro1*s); // pitch
+      drawCircle(ctx, X(0), Y(0), bundle.rb1*s); // base
+      drawCircle(ctx, X(0), Y(0), bundle.ra1*s); // addendum
+
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("Root", X(0)+8, Y(0)-bundle.rf1*s+14);
+      ctx.fillText("Pitch", X(0)+8, Y(0)-bundle.ro1*s+14);
+      ctx.fillText("Base", X(0)+8, Y(0)-bundle.rb1*s+14);
+      ctx.fillText("Addendum", X(0)+8, Y(0)-bundle.ra1*s+14);
+      ctx.restore();
+    }
+
+    // Draw outline
+    ctx.save();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "rgba(122,162,255,0.95)";
+    ctx.beginPath();
+    for (let i=0;i<pointsToDraw.length;i++){
+      const [x,y] = pointsToDraw[i];
+      const px = X(x), py = Y(y);
+      if (i===0) ctx.moveTo(px,py);
+      else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw LOA (small)
+    if (state.lastLOA){
+      const {x_LOA, y_LOA} = state.lastLOA;
+      ctx.save();
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "rgba(61,220,151,0.9)";
+      ctx.beginPath();
+      for (let i=0;i<x_LOA.length;i++){
+        const px = X(x_LOA[i]), py = Y(y_LOA[i]);
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawCircle(ctx, cx, cy, r){
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(0,r), 0, 2*Math.PI);
+    ctx.stroke();
+  }
+
+  // ---------- Main compute ----------
+  function compute(){
+    try{
+      const m = parseFloat(ui.m.value);
+      const alphaDeg = parseFloat(ui.alpha.value);
+      const alphaRad = deg2rad(alphaDeg);
+      const z1 = parseInt(ui.z1.value, 10);
+      const z2 = parseInt(ui.z2.value, 10);
+      const Ck = parseFloat(ui.Ck.value);
+      const Cf = parseFloat(ui.Cf.value);
+      const rc = parseFloat(ui.rc.value);
+      const N = parseInt(ui.N.value, 10);
+
+      const base = computeInvoluteLOAandProfile({m,z1,z2,alphaRad,Ck,Cf,N});
+
+      // UI outputs
+      ui.eps.textContent = fmt(base.eps, 5);
+      ui.loaLen.textContent = fmt(base.loaLen, 4) + " mm";
+      ui.pb.textContent = fmt(base.pb, 4) + " mm";
+
+      ui.r1.textContent  = fmt(base.ro1, 6);
+      ui.rb1.textContent = fmt(base.rb1, 6);
+      ui.ra1.textContent = fmt(base.ra1, 6);
+      ui.rf1.textContent = fmt(base.rf1, 6);
+
+      // Build rack inputs for rack_fillet (ensure ordering y decreases towards end)
+      let xrRack = base.xrLOA.slice();
+      let yrRack = base.yrLOA.slice();
+      if (yrRack[yrRack.length-1] > yrRack[0]){
+        xrRack.reverse(); yrRack.reverse();
       }
 
-      const L = Math.sqrt(s1) + Math.sqrt(s2) - a * Math.sin(alpha_w);
+      // Root completion
+      const cdel = 0.0;
+      const phir_new = deg2rad(75);
+      const offset = 0.9;
+      const rc_target = (isFinite(rc) && rc>0) ? rc : (0.1*m);
 
-      const pb = Math.PI * inp.m * Math.cos(alpha); // base pitch (reference system)
-      if (pb <= 0) throw new Error("Base pitch pb <= 0 (έλεγξε α, m).");
+      const fil = rack_fillet_v2(m, z1, xrRack, yrRack, Cf, cdel, rc_target, phir_new, offset);
 
-      const eps = L / pb;
+      // Working flank in pinion-centered frame (from pitch-point frame)
+      const x_pin = base.xPP.slice();                       // x_pp
+      const y_pin = base.yPP.map(v => v + base.ro1);        // y_pp + ro1
 
-      return {
-        inputs: inp,
-        r1, r2, rb1, rb2, ra1, ra2,
-        a, a_auto,
-        alpha, alpha_w,
-        L, pb, eps
+      // Phase convention (match your MATLAB)
+      const to = m*Math.PI;
+      const So = to*0.495;
+      const rot = -0.5*So/base.ro1;
+
+      // Rotate RIGHT side
+      const xR = [], yR = [];
+      for (let i=0;i<x_pin.length;i++){
+        const [xx,yy] = rotateXY(x_pin[i], y_pin[i], rot);
+        xR.push(xx); yR.push(yy);
+      }
+
+      const xTr = [], yTr = [];
+      for (let i=0;i<fil.x_pin_tr.length;i++){
+        const [xx,yy] = rotateXY(fil.x_pin_tr[i], fil.y_pin_tr[i], rot);
+        xTr.push(xx); yTr.push(yy);
+      }
+
+      // Enforce ordering (same intent as your MATLAB master)
+      // - working flank: tip (larger r) -> root (smaller r)
+      const r_in = xR.map((vx,i)=> Math.hypot(vx,yR[i]));
+      let x_in = xR.slice(), y_in = yR.slice();
+      if (r_in[0] < r_in[r_in.length-1]){
+        x_in.reverse(); y_in.reverse();
+      }
+
+      // - trochoid/completion: join (larger r) -> root (smaller r)
+      const r_tr = xTr.map((vx,i)=> Math.hypot(vx,yTr[i]));
+      let xtr_in = xTr.slice(), ytr_in = yTr.slice();
+      if (r_tr[r_tr.length-1] > r_tr[0]){
+        xtr_in.reverse(); ytr_in.reverse();
+      }
+
+      // Connector guard (prevents visual/CSV gap)
+      const bridged = prepend_connector_if_needed(x_in, y_in, xtr_in, ytr_in, 25);
+      xtr_in = bridged.xtr; ytr_in = bridged.ytr;
+
+      // gear_generator
+      const gg = gear_generator(x_in, y_in, xtr_in, ytr_in, z1, 0);
+
+      // Store state for drawing + exports
+      state.last = base;
+
+      state.lastProfilePP = {
+        x_pp: base.xPP.slice(),
+        y_pp: base.yPP.slice()
       };
-    }
 
-    function render(res){
-      $("eps").textContent = fmt(res.eps, 4);
-      qualityBadge(res.eps);
+      state.lastTooth = {
+        x_tooth: gg.x_tooth,
+        y_tooth: gg.y_tooth
+      };
 
-      $("out_a").textContent  = fmt(res.a, 4) + (res.inputs.mode==="auto" ? " (auto)" : " (manual)");
-      $("out_aw").textContent = fmt(rad2deg(res.alpha_w), 4);
-      $("out_L").textContent  = fmt(res.L, 4);
-      $("out_pb").textContent = fmt(res.pb, 4);
+      state.lastGear = {
+        x_tot: gg.x_tot,
+        y_tot: gg.y_tot
+      };
 
-      $("out_rb").textContent = fmt(res.rb1, 4) + ", " + fmt(res.rb2, 4);
-      $("out_ra").textContent = fmt(res.ra1, 4) + ", " + fmt(res.ra2, 4);
+      state.lastSeg = gg.seg;
 
-      $("btnCSV").disabled = false;
-    }
+      state.lastLOA = {
+        x_LOA: base.xLOA.slice(),
+        y_LOA: base.yLOA.slice()
+      };
 
-    function toCSV(res){
-      const rows = [
-        ["name","value","unit"],
-        ["m", res.inputs.m, "mm"],
-        ["alpha", res.inputs.alpha_deg, "deg"],
-        ["z1", res.inputs.z1, "-"],
-        ["z2", res.inputs.z2, "-"],
-        ["x1", res.inputs.x1, "-"],
-        ["x2", res.inputs.x2, "-"],
-        ["ha*", res.inputs.ha, "-"],
-        ["a", res.a, "mm"],
-        ["alpha_w", rad2deg(res.alpha_w), "deg"],
-        ["rb1", res.rb1, "mm"],
-        ["rb2", res.rb2, "mm"],
-        ["ra1", res.ra1, "mm"],
-        ["ra2", res.ra2, "mm"],
-        ["L", res.L, "mm"],
-        ["pb", res.pb, "mm"],
-        ["eps_alpha", res.eps, "-"],
-      ];
-      return rows.map(r => r.map(x => `"${String(x).replaceAll('"','""')}"`).join(",")).join("\n");
-    }
+      setStatus("ok",
+        `Computed successfully. ε<sub>α</sub> = <span class="mono">${fmt(base.eps,5)}</span> · ` +
+        `LOA = <span class="mono">${fmt(base.loaLen,4)}</span> mm · ` +
+        `p<sub>b</sub> = <span class="mono">${fmt(base.pb,4)}</span> mm`
+      );
 
-    function download(filename, text){
-      const blob = new Blob([text], {type: "text/csv;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
+      drawGeometry(base);
 
-    function resetUI(){
-      $("eps").textContent = "—";
-      $("badge").className = "badge";
-      $("badge").textContent = "—";
-      $("out_a").textContent = "—";
-      $("out_aw").textContent = "—";
-      $("out_L").textContent = "—";
-      $("out_pb").textContent = "—";
-      $("out_rb").textContent = "—";
-      $("out_ra").textContent = "—";
-      $("btnCSV").disabled = true;
+    } catch(err){
+      console.error(err);
+      ui.eps.textContent = "—";
+      ui.loaLen.textContent = "—";
+      ui.pb.textContent = "—";
+      ui.r1.textContent = "—";
+      ui.rb1.textContent = "—";
+      ui.ra1.textContent = "—";
+      ui.rf1.textContent = "—";
       state.last = null;
-      setMsg("");
+      state.lastProfilePP = null;
+      state.lastTooth = null;
+      state.lastGear = null;
+      state.lastSeg = null;
+      state.lastLOA = null;
+
+      setStatus("bad", `Error: <span class="mono">${String(err.message || err)}</span>`);
+      const ctx = ui.cv.getContext("2d");
+      ctx.clearRect(0,0,ui.cv.width, ui.cv.height);
     }
+  }
 
-    // Events
-    document.querySelectorAll('input[name="aMode"]').forEach(r => {
-      r.addEventListener("change", () => {
-        const mode = document.querySelector('input[name="aMode"]:checked')?.value ?? "auto";
-        $("a_manual").disabled = (mode !== "manual");
-        if (mode !== "manual") $("a_manual").value = "";
-      });
-    });
+  // ---------- CSV exports ----------
+  ui.btnCSV_Profile.addEventListener("click", () => {
+    if (!state.last || !state.lastProfilePP){
+      setStatus("warn","Nothing to export. Compute first.");
+      return;
+    }
+    const {x_pp,y_pp} = state.lastProfilePP;
+    const rows = [["idx","x_pp_mm","y_pp_mm"]];
+    for (let i=0;i<x_pp.length;i++){
+      rows.push([String(i+1), String(x_pp[i]), String(y_pp[i])]);
+    }
+    downloadCSV("pinion_profile_pitch_point.csv", rows);
+  });
 
-    $("btnCalc").addEventListener("click", () => {
-      resetUI();
-      const inp = readInputs();
-      const errs = validate(inp);
-      if (errs.length){
-        setMsg(errs.join(" "), "bad");
-        return;
-      }
-      try{
-        const res = computeContactRatio(inp);
-        if (!isFinite(res.eps)){
-          setMsg("Ο υπολογισμός έδωσε μη-πεπερασμένο αποτέλεσμα. Έλεγξε inputs.", "bad");
-          return;
-        }
-        // basic sanity
-        if (res.L <= 0){
-          setMsg("Προσοχή: Το L (length of action) βγήκε <= 0. Αυτό συνήθως σημαίνει μη-εφικτή επαφή για τα δεδομένα.", "warn");
-        } else {
-          setMsg("", "ok");
-        }
-        render(res);
-        state.last = res;
-      } catch(e){
-        setMsg(e.message || String(e), "bad");
-      }
-    });
+  ui.btnCSV_Tooth.addEventListener("click", () => {
+    if (!state.lastTooth){
+      setStatus("warn","Nothing to export. Compute first.");
+      return;
+    }
+    const {x_tooth,y_tooth} = state.lastTooth;
+    const rows = [["x_mm","y_mm"]];
+    for (let i=0;i<x_tooth.length;i++){
+      rows.push([String(x_tooth[i]), String(y_tooth[i])]);
+    }
+    downloadCSV("tooth_outline.csv", rows);
+  });
 
-    $("btnCSV").addEventListener("click", () => {
-      if (!state.last) return;
-      const csv = toCSV(state.last);
-      download("GEARCALC_PRO_contact_ratio.csv", csv);
-    });
+  ui.btnCSV_Gear.addEventListener("click", () => {
+    if (!state.lastGear){
+      setStatus("warn","Nothing to export. Compute first.");
+      return;
+    }
+    const {x_tot,y_tot} = state.lastGear;
+    const rows = [["x_mm","y_mm"]];
+    for (let i=0;i<x_tot.length;i++){
+      rows.push([String(x_tot[i]), String(y_tot[i])]);
+    }
+    downloadCSV("gear_outline_full.csv", rows);
+  });
 
-    $("btnReset").addEventListener("click", () => {
-      // reset to defaults (keep as is, just clear outputs)
-      resetUI();
-    });
+  ui.btnCSV_Segment.addEventListener("click", () => {
+    if (!state.lastSeg){
+      setStatus("warn","Nothing to export. Compute first.");
+      return;
+    }
+    const key = ui.segSelect.value;
+    const seg = state.lastSeg[key];
+    if (!seg || seg.length===0){
+      setStatus("warn","Selected segment is empty for this geometry.");
+      return;
+    }
+    const rows = [["x_mm","y_mm"]];
+    for (const p of seg){
+      rows.push([String(p[0]), String(p[1])]);
+    }
+    const mapName = {
+      rootL:"01_rootCircle_L",
+      troL:"02_trochoid_L",
+      invL:"03_involute_L",
+      add:"04_addendumArc",
+      invR:"05_involute_R",
+      troR:"06_trochoid_R",
+      rootR:"07_rootCircle_R"
+    };
+    downloadCSV(`${mapName[key]}.csv`, rows);
+  });
 
-    // initial
-    resetUI();
-  </script>
+  // ---------- Events ----------
+  ui.btnCompute.addEventListener("click", compute);
+
+  function maybeAuto(){
+    if (ui.autoCompute.checked) compute();
+  }
+
+  ["input","change"].forEach(evt => {
+    ui.m.addEventListener(evt, maybeAuto);
+    ui.alpha.addEventListener(evt, maybeAuto);
+    ui.z1.addEventListener(evt, maybeAuto);
+    ui.z2.addEventListener(evt, maybeAuto);
+    ui.Ck.addEventListener(evt, maybeAuto);
+    ui.Cf.addEventListener(evt, maybeAuto);
+    ui.rc.addEventListener(evt, maybeAuto);
+    ui.N.addEventListener(evt, maybeAuto);
+    ui.showGear.addEventListener(evt, () => state.last && drawGeometry(state.last));
+    ui.showCircles.addEventListener(evt, () => state.last && drawGeometry(state.last));
+  });
+
+  window.addEventListener("resize", () => state.last && drawGeometry(state.last));
+
+  // Initial run
+  compute();
+
+})();
+</script>
 </body>
 </html>
