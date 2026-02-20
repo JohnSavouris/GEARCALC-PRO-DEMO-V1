@@ -296,7 +296,8 @@
       <div class="row" style="margin-top:12px;">
         <label class="toggle"><input type="checkbox" id="showGear" /> Show full gear outline</label>
         <label class="toggle"><input type="checkbox" id="showCircles" checked /> Show reference circles</label>
-        <label class="toggle"><input type="checkbox" id="autoCompute" checked /> Auto-update</label>
+        <!-- Kept for UI parity, but auto-update behavior is disabled in JS -->
+        <label class="toggle"><input type="checkbox" id="autoCompute" /> Auto-update</label>
       </div>
 
       <div class="status" id="statusBox" style="margin-top:12px;">
@@ -379,6 +380,7 @@
    - The "tooth preview / tooth CSV" is now the SECTOR boundary whose
      root-circle parts are CUT at θ = ±π/Z (root circle trimmed at -π/Z and +π/Z).
      Full gear outline remains unchanged.
+   - Auto-update is DISABLED: compute runs ONLY when pressing "Compute".
    ============================================================ */
 
 (function(){
@@ -1334,30 +1336,17 @@
   // ---------- Events ----------
   ui.btnCompute.addEventListener("click", compute);
 
-  function maybeAuto(){
-    if (ui.autoCompute.checked) compute();
-  }
-
+  // Auto-update DISABLED: only redraw toggles if already computed
   ["input","change"].forEach(evt => {
-    ui.m.addEventListener(evt, maybeAuto);
-    ui.alpha.addEventListener(evt, maybeAuto);
-    ui.z1.addEventListener(evt, maybeAuto);
-    ui.z2.addEventListener(evt, maybeAuto);
-    ui.Ck.addEventListener(evt, maybeAuto);
-    ui.Cf.addEventListener(evt, maybeAuto);
-    ui.rc.addEventListener(evt, maybeAuto);
-    ui.N.addEventListener(evt, maybeAuto);
     ui.showGear.addEventListener(evt, () => state.last && drawGeometry(state.last));
     ui.showCircles.addEventListener(evt, () => state.last && drawGeometry(state.last));
   });
 
   window.addEventListener("resize", () => state.last && drawGeometry(state.last));
 
-  // Initial run
-  compute();
+  // Initial run REMOVED: user must press Compute
 
 })();
 </script>
 </body>
 </html>
-
