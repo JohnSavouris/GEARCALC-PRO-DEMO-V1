@@ -3,27 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GEARCALC-PRO — Involute Spur Gear (Geometry / Contact Ratio / Load Sharing / CSV)</title>
+  <title>GEARCALC PRO — Involute Spur Gear Lab Suite</title>
+
   <style>
     :root{
-      --bg:#0b1220;
-      --bg2:#0a1020;
-      --card:#0f1b33;
-      --card2:#0c1730;
-      --text:#e8eefc;
-      --muted:#aeb8d6;
+      /* ---------- Lab-grade dark UI ---------- */
+      --bg0:#070B14;
+      --bg1:#0A1020;
+      --panel:#0E1730;
+      --panel2:#0C142A;
+      --panel3:#0A1226;
+      --text:#EAF0FF;
+      --muted:#AEB8D6;
+      --muted2:#8C97B8;
       --line:rgba(255,255,255,.10);
       --line2:rgba(255,255,255,.06);
-      --accent:#7aa2ff;
-      --accent2:#3ddc97;
-      --warn:#ffcc66;
-      --bad:#ff6b6b;
-      --good:#52ffa8;
-      --shadow: 0 12px 36px rgba(0,0,0,.35);
-      --r: 16px;
+
+      --blue:#7AA2FF;
+      --green:#3DDC97;
+      --amber:#FFCC66;
+      --red:#FF6B6B;
+
+      --shadow: 0 18px 44px rgba(0,0,0,.45);
+      --shadow2: 0 10px 28px rgba(0,0,0,.32);
+      --r12:12px;
+      --r16:16px;
+      --r20:20px;
+
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -31,77 +41,98 @@
       font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(1200px 900px at 15% -10%, rgba(122,162,255,.20), transparent 60%),
-        radial-gradient(900px 700px at 95% 0%, rgba(61,220,151,.10), transparent 55%),
-        linear-gradient(180deg, #070c16, var(--bg) 45%, #070c16);
+        radial-gradient(1300px 900px at 12% -10%, rgba(122,162,255,.22), transparent 60%),
+        radial-gradient(900px 700px at 90% 0%, rgba(61,220,151,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg0));
     }
 
-    .app{
+    /* ---------- App shell ---------- */
+    .shell{
       display:grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 300px 1fr;
       min-height:100vh;
-      gap:16px;
-      padding:16px;
+      gap:14px;
+      padding:14px;
     }
-
     @media (max-width: 1080px){
-      .app{ grid-template-columns: 1fr; }
-      .sidebar{ position:static; top:auto; }
+      .shell{ grid-template-columns: 1fr; }
+      .sidebar{ position:static !important; }
     }
 
+    /* ---------- Sidebar ---------- */
     .sidebar{
       position:sticky;
-      top:16px;
+      top:14px;
       align-self:start;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:12px;
+      min-width:0;
     }
 
     .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
       border:1px solid var(--line);
-      border-radius:var(--r);
+      border-radius:var(--r16);
       box-shadow:var(--shadow);
       overflow:hidden;
     }
-
     .card .head{
       padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
       border-bottom:1px solid var(--line);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background:rgba(255,255,255,.02);
+      background: rgba(255,255,255,.02);
     }
     .card .head h2{
       margin:0;
-      font-size:13px;
-      font-weight:750;
-      letter-spacing:.02em;
+      font-size:12px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:850;
     }
     .card .body{ padding:12px 14px; }
 
     .brand{
       display:flex;
       flex-direction:column;
-      gap:6px;
+      gap:8px;
     }
-    .brand .lab{
-      font-size:12px;
-      letter-spacing:.08em;
+    .brand .kicker{
+      font-size:11px;
+      letter-spacing:.12em;
       text-transform:uppercase;
-      color:var(--muted);
+      color:var(--muted2);
     }
     .brand .title{
-      font-size:20px;
-      font-weight:800;
-      line-height:1.1;
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.01em;
+      line-height:1.15;
     }
     .brand .subtitle{
       font-size:12px;
       color:var(--muted);
       line-height:1.35;
     }
+    .brand .metaRow{
+      display:flex; flex-wrap:wrap; gap:8px;
+      margin-top:2px;
+    }
+    .tag{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
 
+    /* ---------- Navigation (left tabs) ---------- */
     .nav{
       display:flex;
       flex-direction:column;
@@ -117,9 +148,9 @@
       background:rgba(255,255,255,.03);
       color:var(--text);
       padding:11px 12px;
-      border-radius:12px;
+      border-radius:14px;
       cursor:pointer;
-      font-weight:700;
+      font-weight:800;
       font-size:13px;
       transition:.15s ease;
       text-align:left;
@@ -128,44 +159,52 @@
       transform:translateY(-1px);
       border-color:rgba(255,255,255,.18);
       background:rgba(255,255,255,.06);
+      box-shadow:var(--shadow2);
     }
     .navbtn.active{
       background:rgba(122,162,255,.16);
-      border-color:rgba(122,162,255,.38);
+      border-color:rgba(122,162,255,.40);
       box-shadow: inset 0 0 0 1px rgba(122,162,255,.18);
     }
     .navbtn small{
       color:var(--muted);
-      font-weight:600;
+      font-weight:700;
       margin-left:auto;
+      font-family:var(--mono);
     }
 
+    /* ---------- Inputs ---------- */
     .grid{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap:10px;
     }
     .field{
       display:flex;
       flex-direction:column;
       gap:6px;
+      min-width:0;
     }
     .field label{
       font-size:12px;
       color:var(--muted);
       line-height:1.2;
     }
-    .field input, .field select{
+    .field input, .field select, .field textarea{
       width:100%;
       background:rgba(0,0,0,.22);
       color:var(--text);
       border:1px solid rgba(255,255,255,.12);
-      border-radius:12px;
+      border-radius:14px;
       padding:10px 10px;
       outline:none;
       font-size:13px;
     }
-    .field input:focus, .field select:focus{
+    .field textarea{
+      resize:vertical;
+      min-height:90px;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus{
       border-color:rgba(122,162,255,.55);
       box-shadow: 0 0 0 3px rgba(122,162,255,.18);
     }
@@ -176,14 +215,20 @@
       flex-wrap:wrap;
       align-items:center;
     }
+    .sep{
+      height:1px;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+      margin:10px 0;
+    }
 
+    /* ---------- Buttons ---------- */
     .btn{
       border:1px solid rgba(255,255,255,.14);
       background:rgba(255,255,255,.06);
       color:var(--text);
-      border-radius:12px;
+      border-radius:14px;
       padding:10px 12px;
-      font-weight:700;
+      font-weight:900;
       font-size:13px;
       cursor:pointer;
       transition:.15s transform ease, .15s background ease, .15s border-color ease;
@@ -195,71 +240,85 @@
       border-color:rgba(255,255,255,.18);
     }
     .btn.primary{
-      background:rgba(122,162,255,.18);
-      border-color:rgba(122,162,255,.42);
+      background:rgba(122,162,255,.20);
+      border-color:rgba(122,162,255,.46);
     }
-    .btn.primary:hover{ background:rgba(122,162,255,.24); }
+    .btn.primary:hover{ background:rgba(122,162,255,.26); }
     .btn.good{
-      background:rgba(61,220,151,.12);
+      background:rgba(61,220,151,.13);
       border-color:rgba(61,220,151,.35);
     }
-    .btn.bad{
-      background:rgba(255,107,107,.10);
-      border-color:rgba(255,107,107,.35);
-    }
 
+    /* ---------- Toggles (default OFF as requested) ---------- */
     .toggle{
       display:flex;
       align-items:center;
-      gap:8px;
+      gap:10px;
       font-size:13px;
       color:var(--muted);
       user-select:none;
     }
     .toggle input{ transform: translateY(1px); }
 
+    /* ---------- Status ---------- */
     .status{
       padding:10px 12px;
-      border-radius:12px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(0,0,0,.20);
       font-size:13px;
       color:var(--muted);
       line-height:1.35;
     }
-    .status.ok{ border-color:rgba(82,255,168,.28); }
-    .status.warn{ border-color:rgba(255,204,102,.35); }
-    .status.bad{ border-color:rgba(255,107,107,.35); }
+    .status.ok{ border-color:rgba(61,220,151,.35); }
+    .status.warn{ border-color:rgba(255,204,102,.40); }
+    .status.bad{ border-color:rgba(255,107,107,.40); }
     .mono{ font-family:var(--mono); color:var(--text); }
 
+    /* ---------- Main area ---------- */
     .main{
       display:flex;
       flex-direction:column;
-      gap:16px;
+      gap:12px;
       min-width:0;
     }
 
-    .topbar{
+    /* ---------- Top app bar (Compute All moved here) ---------- */
+    .appbar{
       display:flex;
-      align-items:flex-start;
+      align-items:center;
       justify-content:space-between;
       gap:12px;
       padding:12px 14px;
     }
-    .topbar .title{
-      font-size:16px;
-      font-weight:800;
-      line-height:1.2;
+    .appbar .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
     }
-    .topbar .desc{
+    .appbar .title{
+      font-size:16px;
+      font-weight:950;
+      letter-spacing:.01em;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .appbar .desc{
       font-size:12px;
       color:var(--muted);
-      margin-top:4px;
       line-height:1.35;
     }
-
-    .pillrow{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .pill{
+    .appbar .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
       border:1px solid var(--line);
       background:rgba(255,255,255,.04);
       padding:7px 10px;
@@ -271,23 +330,20 @@
 
     .page{
       display:none;
-      gap:16px;
       flex-direction:column;
+      gap:12px;
       min-width:0;
     }
     .page.active{ display:flex; }
 
-    .badgeRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+    /* ---------- Panels / badges ---------- */
+    .badgeRow{ display:flex; gap:10px; flex-wrap:wrap; }
     .badge{
       display:inline-flex;
       align-items:center;
       gap:8px;
       padding:8px 10px;
-      border-radius:12px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(0,0,0,.18);
       font-size:13px;
@@ -296,25 +352,13 @@
     .badge strong{
       color:var(--text);
       font-family:var(--mono);
-      font-weight:700;
+      font-weight:800;
     }
-
-    .kv{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px 14px;
-      font-size:13px;
-      padding:10px 0;
-      border-bottom:1px dashed rgba(255,255,255,.10);
-    }
-    .kv:last-child{ border-bottom:none; }
-    .kv .k{ color:var(--muted); }
-    .kv .v{ color:var(--text); font-family:var(--mono); }
 
     .split{
       display:grid;
       grid-template-columns: 1.05fr 1fr;
-      gap:16px;
+      gap:12px;
       min-width:0;
     }
     @media (max-width: 1180px){
@@ -333,7 +377,7 @@
       height:520px;
       background:linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.12));
       border:1px solid rgba(255,255,255,.10);
-      border-radius:16px;
+      border-radius:18px;
       display:block;
     }
     #cvContact, #cvLoad{ height:460px; }
@@ -341,36 +385,30 @@
     .smallnote{
       font-size:12px;
       color:var(--muted);
-      line-height:1.35;
+      line-height:1.4;
     }
 
-    .miniGrid{
+    .kv{
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 780px){
-      .miniGrid{ grid-template-columns:1fr; }
-    }
-
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .listItem{
-      border:1px solid var(--line2);
-      background:rgba(255,255,255,.02);
-      border-radius:12px;
-      padding:10px 12px;
+      grid-template-columns: 1fr auto;
+      gap:10px 14px;
       font-size:13px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
+      padding:10px 0;
+      border-bottom:1px dashed rgba(255,255,255,.10);
     }
-    .listItem .name{ color:var(--text); font-weight:700; }
-    .listItem .meta{ color:var(--muted); font-family:var(--mono); }
+    .kv:last-child{ border-bottom:none; }
+    .kv .k{ color:var(--muted); }
+    .kv .v{ color:var(--text); font-family:var(--mono); }
+
+    .hint{
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.02);
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+    }
 
     .footer{
       color:rgba(255,255,255,.55);
@@ -384,55 +422,84 @@
     .footer .copy{
       border:1px solid rgba(255,255,255,.10);
       background:rgba(255,255,255,.03);
-      border-radius:12px;
+      border-radius:14px;
       padding:10px 12px;
     }
 
-    .sep{
-      height:1px;
-      background:linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent);
-      margin:4px 0;
-    }
-
-    .hint{
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02);
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.35;
-    }
-    a{ color:var(--accent); text-decoration:none; }
+    a{ color:var(--blue); text-decoration:none; }
     a:hover{ text-decoration:underline; }
+
+    /* ---------- Research/Theory styling ---------- */
+    .theory h3{
+      margin:0 0 10px 0;
+      font-size:13px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:900;
+    }
+    .theory p{
+      margin:0 0 10px 0;
+      color:var(--text);
+      line-height:1.55;
+      font-size:13px;
+    }
+    .theory .eq{
+      font-family:var(--mono);
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      padding:10px 12px;
+      border-radius:14px;
+      color:var(--text);
+      overflow:auto;
+      margin:10px 0;
+      font-size:12px;
+      line-height:1.45;
+      white-space:pre;
+    }
+    .theory ul{
+      margin:8px 0 12px 18px;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:13px;
+    }
+    .theory li{ margin:6px 0; }
   </style>
 </head>
-<body>
 
-<div class="app">
+<body>
+<div class="shell">
+
   <!-- ========================= SIDEBAR ========================= -->
   <aside class="sidebar">
+
     <section class="card">
       <div class="body">
         <div class="brand">
-          <div class="lab">Machine Design Laboratory — NTUA</div>
-          <div class="title">GEARCALC-PRO (Demo V2)</div>
+          <div class="kicker">Machine Design Laboratory — NTUA</div>
+          <div class="title">GEARCALC PRO <span style="opacity:.75;">(Research UI)</span></div>
           <div class="subtitle">
-            Involute spur gear demo with <b>Geometry</b>, <b>Contact Ratio</b>,
-            <b>Load Sharing</b> and <b>CSV Export</b> pages.
+            Involute spur gear laboratory suite: <b>Geometry</b>, <b>Contact Ratio</b>, <b>Load Sharing</b>,
+            <b>CSV/FEA boundaries</b>, and <b>Theory & Model Notes</b>.
+          </div>
+          <div class="metaRow">
+            <div class="tag">Single-file HTML/JS</div>
+            <div class="tag">Traceable calculations</div>
+            <div class="tag">FEA-ready exports</div>
           </div>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <div class="head"><h2>Pages</h2></div>
+      <div class="head"><h2>Navigation</h2></div>
       <div class="body">
         <div class="nav" id="navPages">
           <button class="navbtn active" data-page="pageGeometry">🧩 Geometry <small>Preview</small></button>
           <button class="navbtn" data-page="pageContact">📐 Contact Ratio <small>εα</small></button>
-          <button class="navbtn" data-page="pageLoad">📈 Load Sharing <small>Fₙ,shared</small></button>
-          <button class="navbtn" data-page="pageCSV">💾 CSV Export <small>FEA segments</small></button>
+          <button class="navbtn" data-page="pageLoad">📈 Load Sharing <small>R<sub>M</sub>, F<sub>n</sub></small></button>
+          <button class="navbtn" data-page="pageCSV">💾 Export <small>CSV/FEA</small></button>
+          <button class="navbtn" data-page="pageTheory">📚 Theory <small>Models</small></button>
         </div>
       </div>
     </section>
@@ -460,11 +527,11 @@
           </div>
 
           <div class="field">
-            <label>Addendum coeff Ck</label>
+            <label>Addendum coefficient C<sub>k</sub></label>
             <input id="Ck" type="number" step="0.01" value="1.00">
           </div>
           <div class="field">
-            <label>Dedendum coeff Cf</label>
+            <label>Dedendum coefficient C<sub>f</sub></label>
             <input id="Cf" type="number" step="0.01" value="1.25">
           </div>
 
@@ -480,16 +547,22 @@
 
         <div class="sep"></div>
 
+        <!-- Requested: default UNCHECKED -->
         <div class="row">
           <label class="toggle"><input type="checkbox" id="showGear" /> Show full gear outline</label>
-          <label class="toggle"><input type="checkbox" id="showCircles" checked /> Show reference circles</label>
-          <label class="toggle"><input type="checkbox" id="showLOA" checked /> Show LOA</label>
+          <label class="toggle"><input type="checkbox" id="showCircles" /> Show reference circles</label>
+          <label class="toggle"><input type="checkbox" id="showLOA" /> Show LOA</label>
+        </div>
+
+        <div class="hint" style="margin-top:10px;">
+          Visualization toggles are off by default to keep the preview clean (lab report style).
+          Enable overlays only when needed for interpretation.
         </div>
       </div>
     </section>
 
     <section class="card">
-      <div class="head"><h2>Operating Inputs (Load Sharing page)</h2></div>
+      <div class="head"><h2>Operating Inputs</h2></div>
       <div class="body">
         <div class="grid">
           <div class="field">
@@ -504,60 +577,61 @@
             <label>Face width b (mm)</label>
             <input id="b" type="number" step="0.1" value="20">
           </div>
+
           <div class="field">
-            <label>Plot X-axis (Load page)</label>
+            <label>Load plot X-axis</label>
             <select id="loadXAxis">
               <option value="s">Distance from pitch point s [mm]</option>
               <option value="theta">Pinion angle θ [rad]</option>
             </select>
           </div>
           <div class="field">
-            <label>Plot Quantity (Load page)</label>
+            <label>Load plot quantity</label>
             <select id="loadYAxis">
-              <option value="FnShared">F_n,shared (N)</option>
-              <option value="RM">R_M (load-sharing ratio)</option>
+              <option value="FnShared">F<sub>n,shared</sub> (N)</option>
+              <option value="RM">R<sub>M</sub> (load-sharing ratio)</option>
             </select>
           </div>
           <div class="field">
-            <label>Show transition markers</label>
+            <label>Transition markers</label>
             <select id="loadMarkers">
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="yes">Show</option>
+              <option value="no">Hide</option>
             </select>
           </div>
         </div>
 
         <div class="hint" style="margin-top:10px;">
-          Το <b>b</b> ζητιέται για επόμενη επέκταση (EHL / friction / wear). Στο παρόν
-          load-sharing μοντέλο (Sánchez-type approximation) το <b>F<sub>n,shared</sub></b>
-          εξαρτάται από γεωμετρία + ροπή + α, όχι από το b.
+          Face width <b>b</b> is reserved for future extensions (EHL, friction, wear).
+          The current load-sharing approximation maps torque → tangential load → normal load and applies a
+          piecewise <span class="mono">R<sub>M</sub>(ψ)</span> envelope.
         </div>
 
-        <div class="row" style="margin-top:10px;">
-          <button class="btn primary" id="btnCompute">Compute All</button>
-          <button class="btn" id="btnRedraw">Redraw Current Page</button>
-        </div>
-
-        <div class="status" id="statusBox" style="margin-top:10px;">Ready.</div>
+        <div class="sep"></div>
+        <div class="status" id="statusBox">Ready. Press <b>Compute All</b> to generate results.</div>
       </div>
     </section>
+
   </aside>
 
   <!-- ========================= MAIN ========================= -->
   <main class="main">
+
+    <!-- Top App Bar with Compute All in top-right (as requested) -->
     <section class="card">
-      <div class="topbar">
-        <div>
+      <div class="appbar">
+        <div class="left">
           <div class="title" id="pageTitle">Geometry Preview</div>
           <div class="desc" id="pageDesc">
-            Tooth sector preview (trimmed root at ±π/Z), full gear outline option, reference circles and LOA overlay.
+            Tooth-sector preview (FEA-ready), optional overlays, and lab-grade reporting widgets.
           </div>
         </div>
-        <div class="pillrow">
-          <div class="pill">Static HTML/JS</div>
-          <div class="pill">Involute LOA extraction</div>
-          <div class="pill">Rack fillet + gear generator</div>
-          <div class="pill">Load sharing diagram</div>
+        <div class="right">
+          <div class="chip">Involute LOA extraction</div>
+          <div class="chip">Two εα checks</div>
+          <div class="chip">CSV/FEA segments</div>
+          <button class="btn primary" id="btnCompute">Compute All</button>
+          <button class="btn" id="btnRedraw">Redraw</button>
         </div>
       </div>
     </section>
@@ -572,7 +646,7 @@
 
       <section class="card">
         <div class="head">
-          <h2>Geometry Preview (tooth sector / full gear)</h2>
+          <h2>Geometry Preview</h2>
           <div class="row">
             <button class="btn good" id="btnCSV_Profile_g">Profile CSV</button>
             <button class="btn good" id="btnCSV_Tooth_g">Tooth CSV</button>
@@ -582,9 +656,9 @@
         <div class="canvasWrap">
           <canvas id="cvGeom"></canvas>
           <div class="smallnote">
-            The displayed <b>tooth preview</b> is the FEA-ready sector boundary:
+            The tooth-sector boundary is exported in the ordered, FEA-friendly chain:
             <span class="mono">rootL → troL → invL → add → invR → troR → rootR</span>,
-            with root circle trimmed exactly at <span class="mono">θ = ±π/Z</span>.
+            with the root circle trimmed at <span class="mono">θ = ±π/Z</span>.
           </div>
         </div>
       </section>
@@ -611,9 +685,9 @@
             <div class="kv"><div class="k">Effective contact length e<sub>a</sub> [mm]</div><div class="v" id="ea_txt">—</div></div>
 
             <div class="hint" style="margin-top:10px;">
-              Εδώ εμφανίζονται και οι δύο έλεγχοι που χρησιμοποιείς:
-              <span class="mono">εα = L_LOA / t_g</span> και
-              <span class="mono">εα = e_a / t0</span>.
+              Two traceable checks are reported:
+              <span class="mono">ε<sub>α</sub> = L<sub>LOA</sub> / t<sub>g</sub></span> and
+              <span class="mono">ε<sub>α</sub> = e<sub>a</sub> / t₀</span>.
             </div>
           </div>
         </section>
@@ -641,13 +715,12 @@
 
       <div class="split">
         <section class="card">
-          <div class="head"><h2>Load-sharing / shared normal load plot</h2></div>
+          <div class="head"><h2>Load-sharing plot</h2></div>
           <div class="canvasWrap">
             <canvas id="cvLoad"></canvas>
             <div class="smallnote">
-              Piecewise approximation based on Sánchez–Pedrero–De-Juan style load-sharing ratio
-              <span class="mono">R_M(ψ)</span>. If <span class="mono">εα ≤ 1</span>, fallback to single-pair contact
-              (<span class="mono">R_M = 1</span>) is used.
+              Piecewise load-sharing envelope <span class="mono">R<sub>M</sub>(ψ)</span> applied to the normal load.
+              If <span class="mono">ε<sub>α</sub> ≤ 1</span>, the model falls back to single-pair contact (<span class="mono">R<sub>M</sub>=1</span>).
             </div>
           </div>
         </section>
@@ -657,7 +730,7 @@
           <div class="body">
             <div class="kv"><div class="k">Pinion speed n₁ [rpm]</div><div class="v" id="rpm_txt">—</div></div>
             <div class="kv"><div class="k">Pinion torque T₁ [Nm]</div><div class="v" id="torque_txt">—</div></div>
-            <div class="kv"><div class="k">Face width b [mm] (reserved for EHL page)</div><div class="v" id="b_txt">—</div></div>
+            <div class="kv"><div class="k">Face width b [mm] (reserved)</div><div class="v" id="b_txt">—</div></div>
             <div class="kv"><div class="k">Angular speed ω₁ [rad/s]</div><div class="v" id="omega1_txt">—</div></div>
             <div class="kv"><div class="k">Angular speed ω₂ [rad/s]</div><div class="v" id="omega2_txt">—</div></div>
 
@@ -674,8 +747,7 @@
             <div class="kv"><div class="k">θ_E</div><div class="v" id="thetaE_txt">—</div></div>
 
             <div class="hint" style="margin-top:10px;">
-              Τα σημεία A–B–D–E είναι οι χαρακτηριστικές μεταβάσεις διπλής/μονής επαφής
-              στο προσεγγιστικό μοντέλο φόρτισης.
+              A–B–D–E indicate the entry/exit transitions between double- and single-pair contact in the selected approximation.
             </div>
           </div>
         </section>
@@ -686,7 +758,7 @@
     <section class="page" id="pageCSV">
       <div class="split">
         <section class="card">
-          <div class="head"><h2>CSV Exports</h2></div>
+          <div class="head"><h2>Exports</h2></div>
           <div class="body">
             <div class="row" style="margin-bottom:10px;">
               <button class="btn good" id="btnCSV_Profile">Download profile CSV</button>
@@ -711,39 +783,152 @@
             </div>
 
             <div class="hint">
-              Τα segment exports είναι FEA-friendly boundaries (single tooth sector).
-              Το πλήθος σημείων μπορεί να διαφέρει ανά segment (π.χ. involute / trochoid / root arc),
-              κάτι που είναι φυσιολογικό λόγω διαφορετικής γεωμετρικής καμπυλότητας και sampling.
+              Segment exports are ordered boundaries for meshing/FEA preprocessing.
+              Point counts may differ per segment (involute vs trochoid vs root arc) due to curvature and sampling strategy.
             </div>
           </div>
         </section>
 
         <section class="card">
-          <div class="head"><h2>Available data counts (current solution)</h2></div>
+          <div class="head"><h2>Data counts (current solution)</h2></div>
           <div class="body">
-            <div class="list" id="segListInfo">
-              <div class="listItem"><span class="name">No computed geometry yet</span><span class="meta">—</span></div>
+            <div id="segListInfo">
+              <div class="hint">No computed geometry yet.</div>
             </div>
           </div>
         </section>
       </div>
     </section>
 
+    <!-- ========================= PAGE: THEORY (NEW) ========================= -->
+    <section class="page" id="pageTheory">
+      <section class="card">
+        <div class="head"><h2>Theory & Model Notes (Traceable)</h2></div>
+        <div class="body theory">
+
+          <h3>1) Contact Ratio (εα) — two equivalent checks</h3>
+          <p>
+            The tool evaluates the transverse contact ratio by two independent expressions, reported side-by-side.
+            The first uses the extracted working <b>Line of Action</b> (LOA) length; the second uses the
+            equivalent <b>effective contact length</b> derived from pitch-circle arcs.
+          </p>
+
+          <div class="eq">Definitions (transverse plane):
+t0 = π m                              (circular pitch)
+pb = t0 cos α                          (base pitch)
+tg = t0 cos α                          (projected pitch on LOA)  [same numeric value as pb in this implementation]
+
+Check A (LOA-based):
+εα = L_LOA / tg
+
+Check B (arc-based):
+ea = arc(B→P on pinion pitch circle) + arc(P→C on gear pitch circle)
+εα = ea / t0</div>
+
+          <p>
+            LOA is extracted by computing the raw contact path from the rack-generation kinematics and
+            retaining only the points that are simultaneously inside both addendum circles (pinion and gear).
+            The longest contiguous segment of that feasible region is the working LOA.
+          </p>
+
+          <h3>2) Involute generation and LOA extraction (rack method)</h3>
+          <p>
+            A straight rack flank is sampled and mapped to the pinion frame using the classic rolling constraint.
+            The result gives both: (i) a working involute flank, and (ii) a raw contact path which is filtered
+            to obtain the working LOA.
+          </p>
+
+          <div class="eq">Rack line (sampled):
+y_r ∈ [ -C_f m, +C_k m ]
+x_r = -tan(α) · y_r
+
+Kinematic mapping (pinion pitch radius r_o1):
+θ = K / r_o1
+K = -( y_r · dy/dx + x_r )
+
+Contact path in pitch-point frame:
+x_cp = x_r + K
+y_cp = y_r
+
+Working LOA:
+keep points where:
+|| (x_cp, y_cp + r_o1) || ≤ r_a1   and   || (x_cp, y_cp - r_o2) || ≤ r_a2
+(inside both addendum circles)
+choose the longest contiguous run → LOA</div>
+
+          <h3>3) Trochoid / root completion (rack fillet)</h3>
+          <p>
+            The root region is completed by constructing a rack fillet arc (target radius r<sub>c</sub>) and mapping it
+            through the same rolling transformation, generating the trochoid portion of the tooth boundary.
+            The code includes robust radius targeting (bisection + secant fallback) to match r<sub>c</sub>.
+          </p>
+
+          <h3>4) Load-sharing model: advanced piecewise envelope R<sub>M</sub>(ψ)</h3>
+          <p>
+            The shared normal load is computed from torque via tangential load and then a load-sharing ratio.
+            The implementation uses a Sánchez–Pedrero–De-Juan style piecewise approximation (often used for fast
+            engineering estimates of load distribution along the path of contact).
+          </p>
+
+          <div class="eq">Torque → tangential → normal load:
+F_t = T / r_o1
+F_n = F_t / cos(α)
+
+Shared normal load per active pair:
+F_n,shared(ψ) = R_M(ψ) · F_n
+
+Piecewise R_M(ψ), for εα > 1:
+ψ_B = ψ_A + (εα - 1)·Δpb
+ψ_D = ψ_A + 1·Δpb
+ψ_E = ψ_A + εα·Δpb
+Δpb = π·pb / z1
+
+R_M(ψ) =
+  0.36 + (0.28/(εα-1)) · (z1/(π·pb)) · (ψ - ψ_A),   ψ ∈ [ψ_A, ψ_B]
+  1.00,                                             ψ ∈ (ψ_B, ψ_D]
+  0.36 - (0.28/(εα-1)) · ( (z1/(π·pb))·(ψ - ψ_A) - εα ),  ψ ∈ (ψ_D, ψ_E]
+
+Fallback:
+if εα ≤ 1 → R_M(ψ) = 1 (single-pair contact)</div>
+
+          <p>
+            Transition points A–B–D–E are mapped back to pinion rotation θ via interpolation, so you can plot either
+            in <span class="mono">θ</span> or distance from pitch point <span class="mono">s</span>.
+          </p>
+
+          <h3>5) What “model” is used?</h3>
+          <ul>
+            <li><b>Geometry</b>: rack-based involute generation + addendum-circle feasibility for LOA.</li>
+            <li><b>Root/trochoid</b>: rack fillet arc mapped through rolling kinematics (trochoid-like root).</li>
+            <li><b>Load sharing</b>: piecewise engineering approximation of <span class="mono">R_M(ψ)</span> (advanced but lightweight).</li>
+          </ul>
+
+          <div class="hint">
+            Tip: If you want this Theory tab to cite a specific textbook/paper naming and parameters (chapter/eq numbers),
+            tell me which references you want to align with (e.g., ISO/AGMA texts, Litvin, or a specific Sánchez–Pedrero paper),
+            and I’ll format the Theory section accordingly.
+          </div>
+
+        </div>
+      </section>
+    </section>
+
     <div class="footer">
-      <div class="copy">© <span id="year"></span> Machine Design Lab, NTUA — GEARCALC-PRO Demo V2</div>
-      <div class="copy">Single-file HTML/JS • Geometry / Contact Ratio / Load Sharing / CSV</div>
+      <div class="copy">© <span id="year"></span> Machine Design Lab, NTUA — GEARCALC PRO</div>
+      <div class="copy">Geometry • Contact Ratio • Load Sharing • CSV/FEA • Theory</div>
     </div>
+
   </main>
 </div>
 
 <script>
 /* ============================================================
-   GEARCALC-PRO DEMO V2 (single-file)
-   - Sidebar pages: Geometry / Contact Ratio / Load Sharing / CSV
-   - Involute rack generation -> LOA extraction -> profile
-   - rack_fillet_v2 (ported) -> root completion
-   - gear_generator (ported) -> full gear + FEA segments
-   - Load-sharing diagram (Sánchez-style piecewise approximation)
+   GEARCALC PRO (Research UI) — single-file
+   UI upgrades requested:
+   - More professional, lab-grade layout
+   - Left navigation with a dedicated Theory tab
+   - Compute All moved to the top app bar (top-right)
+   - Show full gear outline / Show reference circles / Show LOA are UNCHECKED by default
    ============================================================ */
 
 (function(){
@@ -753,12 +938,13 @@
   const el = (id) => document.getElementById(id);
 
   const ui = {
-    // Global inputs
+    // Inputs
     m: el("m"), alpha: el("alpha"), z1: el("z1"), z2: el("z2"),
     Ck: el("Ck"), Cf: el("Cf"), rc: el("rc"), N: el("N"),
     rpm: el("rpm"), torque: el("torque"), b: el("b"),
     showGear: el("showGear"), showCircles: el("showCircles"), showLOA: el("showLOA"),
     loadXAxis: el("loadXAxis"), loadYAxis: el("loadYAxis"), loadMarkers: el("loadMarkers"),
+
     btnCompute: el("btnCompute"), btnRedraw: el("btnRedraw"),
     status: el("statusBox"),
 
@@ -768,7 +954,8 @@
       pageGeometry: el("pageGeometry"),
       pageContact: el("pageContact"),
       pageLoad: el("pageLoad"),
-      pageCSV: el("pageCSV")
+      pageCSV: el("pageCSV"),
+      pageTheory: el("pageTheory")
     },
     pageTitle: el("pageTitle"),
     pageDesc: el("pageDesc"),
@@ -778,12 +965,12 @@
     cvContact: el("cvContact"),
     cvLoad: el("cvLoad"),
 
-    // Geometry page badges
+    // Geometry badges
     epsGeom: el("epsGeom"),
     loaLenGeom: el("loaLenGeom"),
     pbGeom: el("pbGeom"),
 
-    // Contact page fields
+    // Contact
     epsLOA: el("epsLOA"),
     epsArcs: el("epsArcs"),
     idxPText: el("idxPText"),
@@ -795,13 +982,13 @@
     arc2_txt: el("arc2_txt"),
     ea_txt: el("ea_txt"),
 
-    // Load page badges
+    // Load badges
     Ft_badge: el("Ft_badge"),
     Fn_badge: el("Fn_badge"),
     Pin_badge: el("Pin_badge"),
     epsLoad: el("epsLoad"),
 
-    // Load page details
+    // Load details
     rpm_txt: el("rpm_txt"),
     torque_txt: el("torque_txt"),
     b_txt: el("b_txt"),
@@ -810,7 +997,7 @@
     psiA_txt: el("psiA_txt"), psiB_txt: el("psiB_txt"), psiD_txt: el("psiD_txt"), psiE_txt: el("psiE_txt"),
     thetaA_txt: el("thetaA_txt"), thetaB_txt: el("thetaB_txt"), thetaD_txt: el("thetaD_txt"), thetaE_txt: el("thetaE_txt"),
 
-    // CSV page
+    // CSV
     btnCSV_Profile: el("btnCSV_Profile"),
     btnCSV_Tooth: el("btnCSV_Tooth"),
     btnCSV_Gear: el("btnCSV_Gear"),
@@ -818,7 +1005,7 @@
     segSelect: el("segSelect"),
     segListInfo: el("segListInfo"),
 
-    // Geometry quick export buttons
+    // Geometry quick exports
     btnCSV_Profile_g: el("btnCSV_Profile_g"),
     btnCSV_Tooth_g: el("btnCSV_Tooth_g"),
     btnCSV_Gear_g: el("btnCSV_Gear_g")
@@ -826,23 +1013,27 @@
 
   el("year").textContent = new Date().getFullYear();
 
+  // Ensure requested default: unchecked
+  ui.showGear.checked = false;
+  ui.showCircles.checked = false;
+  ui.showLOA.checked = false;
+
   // ---------- State ----------
   const state = {
     activePage: "pageGeometry",
-    last: null,              // base geometry bundle
-    lastProfilePP: null,     // {x_pp,y_pp}
-    lastTooth: null,         // tooth sector boundary
-    lastGear: null,          // full gear outline
-    lastSeg: null,           // FEA segments
-    lastLOA: null,           // {x_LOA,y_LOA}
-    contact: null,           // contact ratio metrics, raw CP, LOA, s/theta arrays...
-    load: null               // load-sharing data
+    last: null,
+    lastProfilePP: null,
+    lastTooth: null,
+    lastGear: null,
+    lastSeg: null,
+    lastLOA: null,
+    contact: null,
+    load: null
   };
 
-  // ---------- Generic helpers ----------
+  // ---------- Helpers ----------
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
   function deg2rad(d){ return d*Math.PI/180; }
-  function rad2deg(r){ return r*180/Math.PI; }
   function isNum(v){ return Number.isFinite(v); }
 
   function fmt(v, nd=6){
@@ -887,7 +1078,6 @@
   }
 
   function interpLinear(x, y, xq){
-    // Works for monotonic x (ascending or descending)
     if (!x.length || x.length !== y.length) return NaN;
     if (x.length === 1) return y[0];
 
@@ -929,46 +1119,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // ---------- Numerical derivative (ported) ----------
-  function fivePointNonUniformDerivative(x, f){
-    const n = x.length;
-    if (n < 5) throw new Error("At least 5 points are required for 5-point derivative.");
-    const dfdx = new Array(n).fill(0);
-
-    for (let i=0;i<n;i++){
-      let idx;
-      if (i <= 1) idx = [0,1,2,3,4];
-      else if (i >= n-2) idx = [n-5,n-4,n-3,n-2,n-1];
-      else idx = [i-2,i-1,i,i+1,i+2];
-
-      const xsub = idx.map(j => x[j]);
-      const fsub = idx.map(j => f[j]);
-      const h = xsub.map(xx => xx - x[i]);
-
-      const w = new Array(5).fill(0);
-      for (let j=0;j<5;j++){
-        let denom = 1;
-        for (let m=0;m<5;m++){
-          if (m !== j) denom *= (h[j] - h[m]);
-        }
-        let num = 0;
-        for (let m=0;m<5;m++){
-          if (m === j) continue;
-          let prod = 1;
-          for (let k=0;k<5;k++){
-            if (k !== j && k !== m) prod *= (-h[k]);
-          }
-          num += prod;
-        }
-        w[j] = num / denom;
-      }
-      let val = 0;
-      for (let j=0;j<5;j++) val += w[j]*fsub[j];
-      dfdx[i] = val;
-    }
-    return dfdx;
-  }
-
   // ---------- Arc helper (legacy convention x=r sinθ, y=r cosθ) ----------
   function arcXY(r, th1, th2, N, includeEnds){
     const pts = [];
@@ -984,7 +1134,10 @@
     return pts;
   }
 
-  // ---------- Core involute LOA & profile ----------
+  /* ============================================================
+     Core computations (unchanged physics/logic from your file)
+     ============================================================ */
+
   function computeInvoluteLOAandProfile({ m, z1, z2, alphaRad, Ck, Cf, N }){
     if (!(m>0)) throw new Error("Module m must be > 0.");
     if (!(z1>=3 && Number.isInteger(z1))) throw new Error("z1 must be integer ≥ 3.");
@@ -1005,22 +1158,17 @@
     const rf1 = ro1 - hf;
     const rf2 = ro2 - hf;
 
-    // Rack line (ideal involute generation)
     const yr = linspace(-Cf*m, Ck*m, N);
     const xr = yr.map(v => -Math.tan(alphaRad)*v);
 
-    // Exact derivative for line (pipeline-compatible)
     const dydx = yr.map(() => -1/Math.tan(alphaRad));
 
-    // Rack translation K and pinion rotation theta
     const K = yr.map((y,i) => -(y*dydx[i] + xr[i]));
     const theta = K.map(k => k / ro1);
 
-    // Theoretical contact path (pitch-point frame)
     const xcp = xr.map((x,i) => x + K[i]);
     const ycp = yr.slice();
 
-    // Keep only points inside BOTH addendum circles
     const mask = xcp.map((x,i) => {
       const y = ycp[i];
       const rA1 = Math.hypot(x, y + ro1);
@@ -1028,7 +1176,6 @@
       return (rA1 <= ra1) && (rA2 <= ra2);
     });
 
-    // Longest contiguous true-run = working LOA
     const runs = [];
     let inRun = false, s = 0;
     for (let i=0;i<mask.length;i++){
@@ -1058,7 +1205,6 @@
     const thLOA = theta.slice(i0, i1+1);
     const KLOA  = K.slice(i0, i1+1);
 
-    // Pinion working profile in pitch-point frame
     const xPP = new Array(xLOA.length);
     const yPP = new Array(xLOA.length);
     for (let i=0;i<xLOA.length;i++){
@@ -1085,7 +1231,7 @@
     };
   }
 
-  // ---------- rack_fillet_v2 (compute-only port) ----------
+  /* ---------- rack_fillet_v2 (compute-only) ---------- */
   function eval_rc_from_dy(dy_try, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy){
     const yrl = y_end0 - dy_try;
     const xrl = x_end0 + slope_dxdy*(yrl - y_end0);
@@ -1119,7 +1265,6 @@
 
     if (xr.length !== yr.length || xr.length < 2) throw new Error("rack_fillet: invalid xr/yr input.");
 
-    // Ensure lower end at array END
     if (yr[yr.length-1] > yr[0]){
       xr.reverse(); yr.reverse();
     }
@@ -1177,7 +1322,6 @@
           dy_ext = dy_mid;
         }
       } else {
-        // secant fallback
         let dy0 = 0.0, f0 = f_lo;
         let dy1 = 0.15*m, f1 = eval_rc_from_dy(dy1, m, Cf, offset, phir_new, K0, delta0, phir0, x_end0, y_end0, slope_dxdy) - rc_target;
         const dy_hi_max2 = 20*m;
@@ -1201,7 +1345,6 @@
       }
     }
 
-    // Extend rack downward
     if (dy_ext > 1e-12){
       const y_end1 = y_end0 - dy_ext;
       const stepext = 1.5e-3;
@@ -1259,7 +1402,6 @@
       phiArc = phir_new;
     }
 
-    // Straight segment(s)
     let xr_lin = [], yr_lin = [], dydx_lin = [];
     let steplin = 1.5e-3;
     if (Math.abs(yrlptc - yrend) < steplin){
@@ -1295,7 +1437,6 @@
       dydx_lin = ylin1.map(() => -Math.tan(phir)).concat(ylin2.slice(1).map(() => -Math.tan(phir_new)));
     }
 
-    // Arc phiArc -> 0
     const dphi = deg2rad(0.5);
     let thrc = [];
     for (let t=phiArc; t>=0; t-=dphi) thrc.push(t);
@@ -1309,7 +1450,6 @@
     const yr_tr = yr_lin.concat(yr_rc);
     const dydx_tr = dydx_lin.concat(dydx_rc);
 
-    // Map to pinion-centered frame
     const x_pin_tr = new Array(xr_tr.length);
     const y_pin_tr = new Array(xr_tr.length);
 
@@ -1323,7 +1463,6 @@
     return { x_pin_tr, y_pin_tr };
   }
 
-  // ---------- gear_generator (FEA-ready) ----------
   function snapEndToStart(A, B, tol){
     if (!A || !B || A.length===0 || B.length===0) return [A,B];
     const pA = A[A.length-1];
@@ -1352,13 +1491,11 @@
     if (x_tr.length < 2 || y_tr.length < 2 || x_tr.length !== y_tr.length) throw new Error("gear_generator: invalid x_tr,y_tr.");
     if (!(Z>=3 && Number.isInteger(Z))) throw new Error("gear_generator: Z must be integer >=3.");
 
-    // Enforce ordering
     const r_in = x.map((vx,i)=> Math.hypot(vx,y[i]));
     if (r_in[0] < r_in[r_in.length-1]){ x = x.slice().reverse(); y = y.slice().reverse(); }
     const r_tr = x_tr.map((vx,i)=> Math.hypot(vx,y_tr[i]));
     if (r_tr[r_tr.length-1] > r_tr[0]){ x_tr = x_tr.slice().reverse(); y_tr = y_tr.slice().reverse(); }
 
-    // Addendum arc (legacy construction)
     const th_pin_div_k = 40;
     const rA = Math.hypot(x[0], y[0]);
     const th_tip_R = Math.atan2(x[0], y[0]);
@@ -1368,7 +1505,6 @@
     const xk = th_k.slice(1,-1).map(t => rA*Math.sin(t));
     const yk = th_k.slice(1,-1).map(t => rA*Math.cos(t));
 
-    // Legacy tooth outline (full gear outline use)
     const th_div_f = 20;
     const rF = Math.hypot(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
     const th_root_R = Math.atan2(x_tr[x_tr.length-1], y_tr[y_tr.length-1]);
@@ -1382,20 +1518,13 @@
     const x_tooth_legacy = [];
     const y_tooth_legacy = [];
 
-    // left trochoid
     for (let i=x_tr.length-1;i>=0;i--){ x_tooth_legacy.push(-x_tr[i]); y_tooth_legacy.push(y_tr[i]); }
-    // left involute
     for (let i=x.length-1;i>=0;i--){ x_tooth_legacy.push(-x[i]); y_tooth_legacy.push(y[i]); }
-    // addendum
     for (let i=0;i<xk.length;i++){ x_tooth_legacy.push(xk[i]); y_tooth_legacy.push(yk[i]); }
-    // right involute
     for (let i=0;i<x.length;i++){ x_tooth_legacy.push(x[i]); y_tooth_legacy.push(y[i]); }
-    // right trochoid
     for (let i=0;i<x_tr.length;i++){ x_tooth_legacy.push(x_tr[i]); y_tooth_legacy.push(y_tr[i]); }
-    // root arc to next tooth pitch
     for (let i=0;i<xf.length;i++){ x_tooth_legacy.push(xf[i]); y_tooth_legacy.push(yf[i]); }
 
-    // Full gear by rotation
     const Ntooth = x_tooth_legacy.length;
     const x_tot = new Array(Z*Ntooth + 1);
     const y_tot = new Array(Z*Ntooth + 1);
@@ -1413,7 +1542,6 @@
     x_tot[x_tot.length-1] = x_tot[0];
     y_tot[y_tot.length-1] = y_tot[0];
 
-    // FEA sector segments (root circle trimmed at ±π/Z)
     const thetaB_L = -Math.PI/Z;
     const thetaB_R =  Math.PI/Z;
 
@@ -1449,7 +1577,6 @@
     return { x_tot, y_tot, seg };
   }
 
-  // ---------- Connector guard ----------
   function prepend_connector_if_needed(x_in, y_in, xtr_in, ytr_in, Nbridge=25){
     if (!x_in.length || !xtr_in.length) return {xtr:xtr_in, ytr:ytr_in};
     const p_end = [x_in[x_in.length-1], y_in[y_in.length-1]];
@@ -1467,7 +1594,6 @@
     };
   }
 
-  // ---------- Contact-ratio metrics ----------
   function computeContactMetrics(base){
     const theta_pinion_LOA = base.thLOA.slice();
     const theta_gear_LOA   = theta_pinion_LOA.map(t => -(base.ro1/base.ro2)*t);
@@ -1482,8 +1608,8 @@
     const theta2_P = theta_gear_LOA[idxP];
     const theta2_C = theta_gear_LOA[theta_gear_LOA.length-1];
 
-    const arc_GEAR1 = base.ro1 * Math.abs(theta_P - theta_B);   // B→P on pinion pitch circle
-    const arc_GEAR2 = base.ro2 * Math.abs(theta2_C - theta2_P); // P→C on gear pitch circle
+    const arc_GEAR1 = base.ro1 * Math.abs(theta_P - theta_B);
+    const arc_GEAR2 = base.ro2 * Math.abs(theta2_C - theta2_P);
     const ea = arc_GEAR1 + arc_GEAR2;
 
     const t0 = Math.PI * base.m;
@@ -1510,27 +1636,23 @@
     };
   }
 
-  // ---------- Load-sharing (JS port of MATLAB logic) ----------
   function loadSharingRatioAndNormalForceJS({
     module, pressure_angle, z1, ro_2, Ck, contact_ratio, a_w,
     torque_pinion, ro_1_m, theta_LOA
   }){
-    const p_b = Math.PI * module * Math.cos(pressure_angle); // base pitch [mm]
+    const p_b = Math.PI * module * Math.cos(pressure_angle);
     const ra2 = ro_2 + Ck * module;
     const rb2 = ro_2 * Math.cos(pressure_angle);
     const epsilon_alpha = contact_ratio;
 
     const psi_A = a_w * Math.sin(pressure_angle) - Math.sqrt(Math.max(ra2*ra2 - rb2*rb2, 0));
-    const delta_pb = Math.PI * p_b / z1; // same as MATLAB script
-    let psi_B = NaN, psi_D = NaN, psi_E = NaN;
+    const delta_pb = Math.PI * p_b / z1;
 
+    let psi_B = NaN, psi_D = NaN, psi_E = NaN;
     const psi = [];
     const R_M = [];
 
     if (epsilon_alpha <= 1 + 1e-9){
-      // Fallback: single pair contact across engagement
-      psi_B = NaN;
-      psi_D = NaN;
       psi_E = psi_A + Math.max(epsilon_alpha, 1e-6) * delta_pb;
       const psiGrid = linspace(psi_A, psi_E, theta_LOA.length);
       for (let i=0;i<psiGrid.length;i++){
@@ -1558,15 +1680,14 @@
       }
     }
 
-    const F_t = torque_pinion / ro_1_m;          // [N]
-    const F_n = F_t / Math.cos(pressure_angle);  // [N]
+    const F_t = torque_pinion / ro_1_m;
+    const F_n = F_t / Math.cos(pressure_angle);
     const F_n_shared = R_M.map(v => F_n * v);
 
-    // Map ψ points to θ via interpolation
-    let theta_A = interpLinear(psi, theta_LOA, psi_A);
-    let theta_B = isFinite(psi_B) ? interpLinear(psi, theta_LOA, psi_B) : NaN;
-    let theta_D = isFinite(psi_D) ? interpLinear(psi, theta_LOA, psi_D) : NaN;
-    let theta_E = isFinite(psi_E) ? interpLinear(psi, theta_LOA, psi_E) : NaN;
+    const theta_A = interpLinear(psi, theta_LOA, psi_A);
+    const theta_B = isFinite(psi_B) ? interpLinear(psi, theta_LOA, psi_B) : NaN;
+    const theta_D = isFinite(psi_D) ? interpLinear(psi, theta_LOA, psi_D) : NaN;
+    const theta_E = isFinite(psi_E) ? interpLinear(psi, theta_LOA, psi_E) : NaN;
 
     return {
       psi, R_M, F_t, F_n, F_n_shared,
@@ -1575,7 +1696,9 @@
     };
   }
 
-  // ---------- Plot helpers (generic canvas world transform) ----------
+  /* ============================================================
+     Plotting
+     ============================================================ */
   function setupHiDPICanvas(cv){
     const ctx = cv.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
@@ -1588,10 +1711,20 @@
     return {ctx, cssW, cssH};
   }
 
+  function makeTicks(minv, maxv, n=6){
+    if (!isFinite(minv) || !isFinite(maxv)) return [];
+    if (Math.abs(maxv-minv) < 1e-15) return [{val:minv, pos:0.5}];
+    const ticks = [];
+    for (let i=0;i<n;i++){
+      const a = i/(n-1);
+      ticks.push({ val: minv + a*(maxv-minv), pos: a });
+    }
+    return ticks;
+  }
+
   function drawGridAxes(ctx, rect, xticks, yticks, xFmt, yFmt){
     const {x,y,w,h} = rect;
 
-    // grid
     ctx.save();
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255,255,255,0.06)";
@@ -1605,19 +1738,16 @@
     }
     ctx.restore();
 
-    // border
     ctx.save();
     ctx.strokeStyle = "rgba(255,255,255,0.16)";
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y, w, h);
     ctx.restore();
 
-    // labels
     ctx.save();
     ctx.fillStyle = "rgba(255,255,255,0.70)";
     ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
 
-    // x labels
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     for (const t of xticks){
@@ -1625,7 +1755,6 @@
       ctx.fillText(xFmt(t.val), px, y+h+6);
     }
 
-    // y labels
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     for (const t of yticks){
@@ -1633,17 +1762,6 @@
       ctx.fillText(yFmt(t.val), x-8, py);
     }
     ctx.restore();
-  }
-
-  function makeTicks(minv, maxv, n=5){
-    if (!isFinite(minv) || !isFinite(maxv)) return [];
-    if (Math.abs(maxv-minv) < 1e-15) return [{val:minv, pos:0.5}];
-    const ticks = [];
-    for (let i=0;i<n;i++){
-      const a = i/(n-1);
-      ticks.push({ val: minv + a*(maxv-minv), pos: a });
-    }
-    return ticks;
   }
 
   function drawLinePlotOnCanvas(cv, opts){
@@ -1659,7 +1777,6 @@
       return;
     }
 
-    // Bounds
     let xmin=+Infinity, xmax=-Infinity, ymin=+Infinity, ymax=-Infinity;
     for (const s of series){
       for (let i=0;i<s.x.length;i++){
@@ -1674,10 +1791,8 @@
     if (Math.abs(xmax-xmin) < 1e-12){ xmin -= 1; xmax += 1; }
     if (Math.abs(ymax-ymin) < 1e-12){ ymin -= 1; ymax += 1; }
 
-    // Padding margins
     const rect = { x:64, y:16, w: cssW-80, h: cssH-60 };
 
-    // Optional padding
     const padx = 0.04*(xmax-xmin);
     const pady = 0.08*(ymax-ymin);
     xmin -= padx; xmax += padx;
@@ -1686,23 +1801,23 @@
     function X(x){ return rect.x + (x-xmin)/(xmax-xmin)*rect.w; }
     function Y(y){ return rect.y + (1 - (y-ymin)/(ymax-ymin))*rect.h; }
 
-    // Grid + ticks
     const xticks = makeTicks(xmin, xmax, 6);
     const yticks = makeTicks(ymin, ymax, 6);
-    drawGridAxes(ctx, rect, xticks, yticks, v => fmt(v, opts.xTickDigits ?? 3), v => fmt(v, opts.yTickDigits ?? 3));
+    drawGridAxes(ctx, rect, xticks, yticks,
+      v => fmt(v, opts.xTickDigits ?? 3),
+      v => fmt(v, opts.yTickDigits ?? 3)
+    );
 
-    // Title
     if (opts.title){
       ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,.88)";
-      ctx.font = "700 13px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillStyle = "rgba(255,255,255,.90)";
+      ctx.font = "900 13px " + getComputedStyle(document.body).fontFamily;
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillText(opts.title, rect.x, 2);
       ctx.restore();
     }
 
-    // Axis labels
     ctx.save();
     ctx.fillStyle = "rgba(255,255,255,.75)";
     ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
@@ -1720,13 +1835,12 @@
     }
     ctx.restore();
 
-    // Vertical markers
     if (opts.markers && opts.markers.length){
       for (const mk of opts.markers){
         if (!isFinite(mk.x)) continue;
         const px = X(mk.x);
         ctx.save();
-        ctx.strokeStyle = mk.color || "rgba(255,255,255,.25)";
+        ctx.strokeStyle = "rgba(255,255,255,.25)";
         ctx.lineWidth = 1;
         ctx.setLineDash([6,6]);
         ctx.beginPath(); ctx.moveTo(px, rect.y); ctx.lineTo(px, rect.y+rect.h); ctx.stroke();
@@ -1742,12 +1856,10 @@
       }
     }
 
-    // Series lines
     for (const s of series){
       ctx.save();
       ctx.strokeStyle = s.color || "rgba(122,162,255,.95)";
       ctx.lineWidth = s.lineWidth || 2;
-      if (s.dashed) ctx.setLineDash([7,5]); else ctx.setLineDash([]);
       ctx.beginPath();
       let started = false;
       for (let i=0;i<s.x.length;i++){
@@ -1761,7 +1873,6 @@
       ctx.restore();
     }
 
-    // Legend
     if (opts.legend && opts.legend.length){
       const lx = rect.x + 10;
       let ly = rect.y + 10;
@@ -1769,10 +1880,8 @@
         ctx.save();
         ctx.strokeStyle = item.color || "rgba(122,162,255,.95)";
         ctx.lineWidth = 2;
-        if (item.dashed) ctx.setLineDash([7,5]); else ctx.setLineDash([]);
         ctx.beginPath();
         ctx.moveTo(lx, ly+7); ctx.lineTo(lx+26, ly+7); ctx.stroke();
-        ctx.setLineDash([]);
         ctx.fillStyle = "rgba(255,255,255,.82)";
         ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
         ctx.textAlign = "left";
@@ -1784,7 +1893,9 @@
     }
   }
 
-  // ---------- Geometry drawing ----------
+  /* ============================================================
+     Geometry rendering
+     ============================================================ */
   function drawCircle(ctx, cx, cy, r){
     ctx.beginPath();
     ctx.arc(cx, cy, Math.max(0,r), 0, 2*Math.PI);
@@ -1814,7 +1925,6 @@
       for (let i=0;i<tooth.x_tooth.length;i++) pointsToDraw.push([tooth.x_tooth[i], tooth.y_tooth[i]]);
     }
 
-    // Bounds
     let xmin=+Infinity, xmax=-Infinity, ymin=+Infinity, ymax=-Infinity;
     for (const [x,y] of pointsToDraw){
       xmin = Math.min(xmin,x); xmax = Math.max(xmax,x);
@@ -1849,7 +1959,6 @@
     function X(x){ return cx + (x-mx)*s; }
     function Y(y){ return cy - (y-my)*s; }
 
-    // Background cross
     ctx.save();
     ctx.strokeStyle = "rgba(255,255,255,.06)";
     ctx.lineWidth = 1;
@@ -1857,7 +1966,6 @@
     ctx.beginPath(); ctx.moveTo(X(0), 0); ctx.lineTo(X(0), cssH); ctx.stroke();
     ctx.restore();
 
-    // Reference circles
     if (showCircles){
       ctx.save();
       ctx.lineWidth = 1;
@@ -1868,20 +1976,10 @@
       drawCircle(ctx, X(0), Y(0), bundle.rb1*s);
       drawCircle(ctx, X(0), Y(0), bundle.ra1*s);
       ctx.restore();
-
-      ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.60)";
-      ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
-      ctx.fillText("Root", X(0)+8, Y(bundle.rf1)-4);
-      ctx.fillText("Pitch", X(0)+8, Y(bundle.ro1)-4);
-      ctx.fillText("Base", X(0)+8, Y(bundle.rb1)-4);
-      ctx.fillText("Addendum", X(0)+8, Y(bundle.ra1)-4);
-      ctx.restore();
     }
 
-    // Tooth / gear outline
     ctx.save();
-    ctx.lineWidth = 2.1;
+    ctx.lineWidth = 2.2;
     ctx.strokeStyle = "rgba(122,162,255,.95)";
     ctx.beginPath();
     for (let i=0;i<pointsToDraw.length;i++){
@@ -1891,11 +1989,10 @@
     ctx.stroke();
     ctx.restore();
 
-    // LOA
     if (showLOA && state.lastLOA){
       const {x_LOA,y_LOA} = state.lastLOA;
       ctx.save();
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 2.0;
       ctx.strokeStyle = "rgba(61,220,151,.95)";
       ctx.beginPath();
       for (let i=0;i<x_LOA.length;i++){
@@ -1905,16 +2002,8 @@
       ctx.stroke();
       ctx.restore();
     }
-
-    // Caption
-    ctx.save();
-    ctx.fillStyle = "rgba(255,255,255,.70)";
-    ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
-    ctx.fillText(showGear ? "Full gear outline" : "Single tooth sector (FEA-ready boundary)", 14, 14);
-    ctx.restore();
   }
 
-  // ---------- Contact plot ----------
   function drawContactPlot(){
     const base = state.last;
     const c = state.contact;
@@ -1923,7 +2012,6 @@
       return;
     }
 
-    // Use custom x-y geometric plot (equal-ish scaling)
     const cv = ui.cvContact;
     const {ctx, cssW, cssH} = setupHiDPICanvas(cv);
 
@@ -1944,7 +2032,7 @@
     const rect = {x:54, y:16, w: cssW-70, h: cssH-50};
     const sx = rect.w / Math.max(1e-9, xmax-xmin);
     const sy = rect.h / Math.max(1e-9, ymax-ymin);
-    const s = Math.min(sx, sy); // equal scale for geometry plot
+    const s = Math.min(sx, sy);
 
     const cx = rect.x + rect.w/2;
     const cy = rect.y + rect.h/2;
@@ -1954,20 +2042,17 @@
     function X(x){ return cx + (x-mx)*s; }
     function Y(y){ return cy - (y-my)*s; }
 
-    // Border
     ctx.save();
     ctx.strokeStyle = "rgba(255,255,255,.16)";
     ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
     ctx.restore();
 
-    // Axes
     ctx.save();
     ctx.strokeStyle = "rgba(255,255,255,.07)";
     ctx.beginPath(); ctx.moveTo(rect.x, Y(0)); ctx.lineTo(rect.x+rect.w, Y(0)); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(X(0), rect.y); ctx.lineTo(X(0), rect.y+rect.h); ctx.stroke();
     ctx.restore();
 
-    // Raw CP
     ctx.save();
     ctx.strokeStyle = "rgba(220,220,220,.55)";
     ctx.lineWidth = 1.3;
@@ -1979,7 +2064,6 @@
     ctx.stroke();
     ctx.restore();
 
-    // Working LOA
     ctx.save();
     ctx.strokeStyle = "rgba(61,220,151,.95)";
     ctx.lineWidth = 2.3;
@@ -1991,9 +2075,8 @@
     ctx.stroke();
     ctx.restore();
 
-    // Mark B P C
     const markers = [
-      {p:c.B, label:"B", color:"rgba(82,255,168,.95)"},
+      {p:c.B, label:"B", color:"rgba(61,220,151,.95)"},
       {p:c.P, label:"P", color:"rgba(255,255,255,.95)"},
       {p:c.C, label:"C", color:"rgba(255,107,107,.95)"}
     ];
@@ -2006,43 +2089,16 @@
       ctx.fillText(mk.label, px+6, py-6);
       ctx.restore();
     }
-
-    // Labels
-    ctx.save();
-    ctx.fillStyle = "rgba(255,255,255,.75)";
-    ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
-    ctx.fillText("x [mm]", rect.x + rect.w - 44, rect.y + rect.h + 18);
-    ctx.save();
-    ctx.translate(14, rect.y + rect.h/2);
-    ctx.rotate(-Math.PI/2);
-    ctx.fillText("y [mm]", 0, 0);
-    ctx.restore();
-    ctx.restore();
-
-    // Legend
-    ctx.save();
-    ctx.fillStyle = "rgba(255,255,255,.82)";
-    ctx.font = "12px " + getComputedStyle(document.body).fontFamily;
-    const lx = rect.x + 12, ly = rect.y + 10;
-    ctx.strokeStyle = "rgba(220,220,220,.55)";
-    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(lx,ly+7); ctx.lineTo(lx+22,ly+7); ctx.stroke();
-    ctx.fillText("Raw contact path (CP)", lx+28, ly+1);
-
-    ctx.strokeStyle = "rgba(61,220,151,.95)";
-    ctx.beginPath(); ctx.moveTo(lx,ly+26); ctx.lineTo(lx+22,ly+26); ctx.stroke();
-    ctx.fillText("Working LOA", lx+28, ly+20);
-    ctx.restore();
   }
 
-  // ---------- Load-sharing plot ----------
   function drawLoadPlot(){
-    if (!state.load || !state.contact || !state.last){
+    if (!state.load || !state.contact){
       drawLinePlotOnCanvas(ui.cvLoad, {series:[]});
       return;
     }
 
-    const xMode = ui.loadXAxis.value;   // "s" or "theta"
-    const yMode = ui.loadYAxis.value;   // "FnShared" or "RM"
+    const xMode = ui.loadXAxis.value;
+    const yMode = ui.loadYAxis.value;
     const showMarkers = ui.loadMarkers.value === "yes";
 
     const ld = state.load;
@@ -2107,11 +2163,13 @@
       yTickDigits,
       markers,
       series: [{x, y, color, lineWidth: 2.2}],
-      legend: [{label: yMode === "RM" ? "R_M" : "F_n,shared", color}]
+      legend: [{label: (yMode === "RM") ? "R_M" : "F_n,shared", color}]
     });
   }
 
-  // ---------- UI update ----------
+  /* ============================================================
+     UI updates
+     ============================================================ */
   function updateGeometryPageUI(){
     if (!state.last){
       ui.epsGeom.textContent = "—";
@@ -2155,13 +2213,11 @@
 
   function updateLoadPageUI(params){
     const ld = state.load;
-    const base = state.last;
-    if (!ld || !base){
+    if (!ld || !state.contact){
       ui.Ft_badge.textContent = "—";
       ui.Fn_badge.textContent = "—";
       ui.Pin_badge.textContent = "—";
       ui.epsLoad.textContent = "—";
-
       [
         ui.rpm_txt,ui.torque_txt,ui.b_txt,ui.omega1_txt,ui.omega2_txt,
         ui.psiA_txt,ui.psiB_txt,ui.psiD_txt,ui.psiE_txt,
@@ -2197,14 +2253,14 @@
     segList.innerHTML = "";
 
     if (!state.last){
-      segList.innerHTML = '<div class="listItem"><span class="name">No computed geometry yet</span><span class="meta">—</span></div>';
+      segList.innerHTML = '<div class="hint">No computed geometry yet.</div>';
       return;
     }
 
     const addItem = (name, count) => {
       const div = document.createElement("div");
-      div.className = "listItem";
-      div.innerHTML = '<span class="name">'+name+'</span><span class="meta">'+count+' pts</span>';
+      div.className = "kv";
+      div.innerHTML = '<div class="k">'+name+'</div><div class="v">'+count+' pts</div>';
       segList.appendChild(div);
     };
 
@@ -2235,10 +2291,11 @@
     updateCSVInfoUI();
   }
 
-  // ---------- Main compute ----------
+  /* ============================================================
+     Main compute
+     ============================================================ */
   function computeAll(){
     try {
-      // Parse inputs
       const m = parseFloat(ui.m.value);
       const alphaDeg = parseFloat(ui.alpha.value);
       const alphaRad = deg2rad(alphaDeg);
@@ -2251,19 +2308,15 @@
 
       const rpm = parseFloat(ui.rpm.value);
       const torque = parseFloat(ui.torque.value);
-      const b = parseFloat(ui.b.value); // reserved for future EHL page
+      const b = parseFloat(ui.b.value);
 
       if (!(isFinite(rpm) && rpm > 0)) throw new Error("Pinion speed n₁ (rpm) must be > 0.");
       if (!(isFinite(torque) && torque > 0)) throw new Error("Pinion torque T₁ (Nm) must be > 0.");
       if (!(isFinite(b) && b > 0)) throw new Error("Face width b (mm) must be > 0.");
 
-      // 1) Base geometry + LOA + pinion working profile
       const base = computeInvoluteLOAandProfile({m,z1,z2,alphaRad,Ck,Cf,N});
-
-      // 2) Contact ratio metrics / checks
       const contact = computeContactMetrics(base);
 
-      // 3) Root completion + full tooth/full gear generation
       let xrRack = base.xrLOA.slice();
       let yrRack = base.yrLOA.slice();
       if (yrRack[yrRack.length-1] > yrRack[0]){
@@ -2277,11 +2330,9 @@
 
       const fil = rack_fillet_v2(m, z1, xrRack, yrRack, Cf, cdel, rc_target, phir_new, offset);
 
-      // Working flank in pinion-centered frame (shift from pitch-point frame)
       const x_pin = base.xPP.slice();
       const y_pin = base.yPP.map(v => v + base.ro1);
 
-      // Phase convention (same as your previous code)
       const to = m*Math.PI;
       const So = to*0.495;
       const rot = -0.5*So/base.ro1;
@@ -2298,7 +2349,6 @@
         xTr.push(xx); yTr.push(yy);
       }
 
-      // Ordering
       const r_in = xR.map((vx,i)=> Math.hypot(vx,yR[i]));
       let x_in = xR.slice(), y_in = yR.slice();
       if (r_in[0] < r_in[r_in.length-1]){ x_in.reverse(); y_in.reverse(); }
@@ -2312,7 +2362,6 @@
 
       const gg = gear_generator(x_in, y_in, xtr_in, ytr_in, z1);
 
-      // Tooth preview/CSV = FEA sector boundary
       const order = ["rootL","troL","invL","add","invR","troR","rootR"];
       const x_tooth_sector = [];
       const y_tooth_sector = [];
@@ -2323,7 +2372,6 @@
         }
       }
 
-      // 4) Load-sharing data (using εα from LOA-based contact ratio)
       const omega_pinion = rpm * (2*Math.PI/60);
       const omega_gear = -omega_pinion * (base.ro1/base.ro2);
       const P_in = (2*Math.PI*rpm*torque)/60;
@@ -2343,7 +2391,6 @@
         theta_LOA: contact.theta_pinion_LOA
       });
 
-      // Store state
       state.last = base;
       state.lastProfilePP = { x_pp: base.xPP.slice(), y_pp: base.yPP.slice() };
       state.lastTooth = { x_tooth: x_tooth_sector, y_tooth: y_tooth_sector };
@@ -2360,14 +2407,13 @@
       setStatus("ok",
         'Computed successfully. ' +
         'ε<sub>α</sub><span class="mono"> (LOA)</span> = <span class="mono">'+fmt(contact.eps_LOA,6)+'</span>, ' +
-        'ε<sub>α</sub><span class="mono"> (arcs)</span> = <span class="mono">'+fmt(contact.eps_arcs,6)+'</span>, ' +
-        'F<sub>n,shared</sub> diagram ready.'
+        'ε<sub>α</sub><span class="mono"> (arcs)</span> = <span class="mono">'+fmt(contact.eps_arcs,6)+'</span>.'
       );
 
       if (contact.eps_LOA <= 1 + 1e-9){
         setStatus("warn",
           'Computed, but ε<sub>α</sub> ≤ 1. The load-sharing page uses single-pair fallback ' +
-          '(<span class="mono">R_M = 1</span>) instead of the three-piece double-contact approximation.'
+          '(<span class="mono">R<sub>M</sub> = 1</span>) instead of the three-piece approximation.'
         );
       }
 
@@ -2390,23 +2436,29 @@
     }
   }
 
-  // ---------- Page switching ----------
+  /* ============================================================
+     Page switching
+     ============================================================ */
   const pageMeta = {
     pageGeometry: {
       title: "Geometry Preview",
-      desc: "Tooth sector preview (trimmed root at ±π/Z), full gear outline option, reference circles and LOA overlay."
+      desc: "FEA-ready tooth-sector preview with optional overlays and export shortcuts."
     },
     pageContact: {
       title: "Contact Ratio Calculation",
-      desc: "LOA extraction, pitch-point identification and εα evaluation by two checks: LOA-based and arc-based."
+      desc: "LOA extraction, pitch-point identification, and εα computed by LOA-based and arc-based checks."
     },
     pageLoad: {
       title: "Load Sharing Diagram",
-      desc: "Shared normal load distribution per active tooth pair using a Sánchez-style load-sharing approximation."
+      desc: "Shared normal load distribution per active tooth pair using a piecewise R_M(ψ) approximation."
     },
     pageCSV: {
       title: "CSV Export & Segment Data",
       desc: "Export pitch-point profile, tooth sector, full gear outline, and FEA boundary segments as CSV."
+    },
+    pageTheory: {
+      title: "Theory & Model Notes",
+      desc: "Traceable equations and model assumptions for εα, involute/LOA, trochoid/root, and load sharing."
     }
   };
 
@@ -2428,10 +2480,11 @@
     if (state.activePage === "pageGeometry") drawGeometry();
     else if (state.activePage === "pageContact") drawContactPlot();
     else if (state.activePage === "pageLoad") drawLoadPlot();
-    // pageCSV has no main canvas redraw
   }
 
-  // ---------- CSV exports ----------
+  /* ============================================================
+     CSV exports
+     ============================================================ */
   function exportProfileCSV(){
     if (!state.lastProfilePP){
       setStatus("warn","Nothing to export. Compute first.");
@@ -2451,7 +2504,7 @@
     const {x_tooth,y_tooth} = state.lastTooth;
     const rows = [["x_mm","y_mm"]];
     for (let i=0;i<x_tooth.length;i++) rows.push([String(x_tooth[i]), String(y_tooth[i])]);
-    downloadCSV("tooth_outline.csv", rows);
+    downloadCSV("tooth_outline_sector.csv", rows);
   }
 
   function exportGearCSV(){
@@ -2491,7 +2544,9 @@
     downloadCSV(mapName[key] + ".csv", rows);
   }
 
-  // ---------- Events ----------
+  /* ============================================================
+     Events
+     ============================================================ */
   ui.btnCompute.addEventListener("click", computeAll);
   ui.btnRedraw.addEventListener("click", redrawCurrentPage);
 
@@ -2502,12 +2557,10 @@
     if (pageId && ui.pages[pageId]) setActivePage(pageId);
   });
 
-  // Redraw-only controls
   [ui.showGear, ui.showCircles, ui.showLOA, ui.loadXAxis, ui.loadYAxis, ui.loadMarkers].forEach(node => {
     node.addEventListener("change", () => redrawCurrentPage());
   });
 
-  // CSV buttons (both pages)
   ui.btnCSV_Profile.addEventListener("click", exportProfileCSV);
   ui.btnCSV_Tooth.addEventListener("click", exportToothCSV);
   ui.btnCSV_Gear.addEventListener("click", exportGearCSV);
@@ -2522,9 +2575,10 @@
   // Initial
   updateAllUI();
   setActivePage("pageGeometry");
-  setStatus("", "Ready. Fill inputs and press Compute All.");
+  setStatus("", "Ready. Press Compute All.");
 
 })();
 </script>
+
 </body>
 </html>
